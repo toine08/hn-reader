@@ -1,49 +1,44 @@
-import { Text, View } from 'react-native'
-import React, { useState } from 'react';
+import { Text, View,FlatList, StyleSheet, TouchableOpacity, SafeAreaView} from 'react-native'
+import React, { useState,useEffect } from 'react';
 import * as WebBrowser from 'expo-web-browser';
-import { FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Picker } from '@react-native-picker/picker';
+//import AsyncStorage from '@react-native-async-storage/async-storage';
 import getData from '../../utils/getData';
+import FloatingButton from '@/components/FloatingButton';
 
 export default function TabOneScreen() {
   const [selectedStoryType, setSelectedStoryType] = useState('topstories');
 
-  const stories = getData(selectedStoryType);
+  const stories:any  = getData('topstories');
+  
 
-  const storeData = async (value: any) => {
+ /* const storeData = async (value: any) => {
     try {
       const jsonValue = JSON.stringify(value)
       await AsyncStorage.setItem('my-key', jsonValue);
     } catch (e) {
-      // saving error
+      console.log(e, 'error')
     }
-  };
+  };*/
 
   return (
-    <View style={styles.container}>
-      <Picker
-        selectedValue={selectedStoryType}
-        onValueChange={(itemValue: any) => setSelectedStoryType(itemValue)}
-        style={styles.picker}
-      >
-        <Picker.Item label="Top" value="topstories" />
-        <Picker.Item label="Job" value="jobstories" />
-        <Picker.Item label="Ask" value="askstories" />
-        <Picker.Item label="Show" value="showstories" />
-        <Picker.Item label="New" value="newstories" />
-      </Picker>
+    <SafeAreaView className="flex-1 item-center justify-center p-4 bg-black">
+            <FloatingButton className="absolute left-10 bottom-4 bg-red z-10"/>    
+
+      <View className='z-0'>
       <FlatList
+      className='bg-neutral-950'
         data={stories}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <TouchableOpacity 
+          className='bg-neutral-900 pb-6 m-2 mb-3 rounded-lg shadow-sm mix-blend-lighten shadow-blue-300'
+          
             onPress={() => {
               WebBrowser.openBrowserAsync(item.url);
-              storeData({
+              /*storeData({
                 key: 'article',
                 data: item,
-              });
+              });*/
             }}
           >
             <Text style={styles.item}>{item.title}</Text>
@@ -51,7 +46,10 @@ export default function TabOneScreen() {
         )}
         style={styles.flatList}
       />
+
     </View>
+    </SafeAreaView>
+    
   )
 }
 
@@ -66,15 +64,12 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 18,
     height: 'auto',
+    color: 'white',
   },
   itemContainer: {
     backgroundColor: '#2f2e2e',
     paddingBottom:20,
     margin:5,
-  },
-  picker: {
-    height: 50,
-    width: 150,
   },
   flatList: { // Add this style
     width: '100%',
