@@ -1,13 +1,15 @@
 import React from 'react';
-import { TouchableOpacity, Text, View} from 'react-native';
+import { TouchableOpacity, Text} from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 
 const FloatingButton = (props: any) => {
     return (
-        <TouchableOpacity className="flex-1 items-center justify-center bg-red">
-            <View>
-            <Text className='text-white font-bold text-lg'>Filter</Text>
-            </View>
-        </TouchableOpacity>
+        <TouchableOpacity
+        {...props}
+        className="bg-blue-500 rounded-full p-3 flex items-center justify-center w-12 h-12 shadow-lg"
+      >
+        <FontAwesome name="filter" size={24} color="white" />
+      </TouchableOpacity>
     );
 };
 export default FloatingButton;
