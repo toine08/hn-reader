@@ -2,13 +2,14 @@ import { StatusBar } from 'expo-status-bar';
 import { Platform, StyleSheet,Button } from 'react-native';
 import React, { useState } from 'react';
 import { Text, View } from '@/components/Themed';
-import getData from '@/utils/getData';
+import { clearAll } from '@/utils/lib';
 
 
 
 export default function StoryTypeModal() {
   return (
     <View style={styles.container}>
+      <Button title="Clear All" onPress={()=>{clearAll()}}/>
              <View style={styles.centeredView}>
         </View>
 
