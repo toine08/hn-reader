@@ -2,15 +2,25 @@ import { useState, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-export default function getData(choices: string): Promise<any[]> {
+export default function getData(choices: string, page: number): Promise<any[]> {
+  console.log('getData', choices, page)
   const choice = choices || 'topstories';
+  const start = (page - 1) * 50;
+  const end = start + 50;
 
   return fetch(`https://hacker-news.firebaseio.com/v0/${choice}.json`)
     .then((res) => res.json())
     .then((data) => {
-      const storyPromises = data.slice(0, 50).map((id: number) => 
-        fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(res => res.json())
-      );
+      console.log('Data from API:', data);
+      const slicedData: number[] = Array.from(new Set(data.slice(start, end))); // Add type annotation here
+      console.log('Sliced data:', slicedData);
+      const uniqueIds = new Set<number>(); // Set to store unique IDs
+      const storyPromises = slicedData
+        .filter(id => !uniqueIds.has(id)) // Filter out duplicate IDs
+        .map((id: number) => {
+          uniqueIds.add(id); // Add ID to the set
+          return fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(res => res.json())
+        });
       return Promise.all(storyPromises);
     })
     .catch((error) => {
@@ -72,8 +82,20 @@ export async function removeArticleId(id: number){
     articleIds = articleIds.filter(articleId => articleId !== id.toString());
     const updatedStringValue = articleIds.join(',');
     await AsyncStorage.setItem('hn-article', updatedStringValue);
+    return articleIds; // Return the updated list of article IDs
   } catch (e) {
     console.error(e, 'error')
   }
 };
+export function getLocalTime(value:number){
+  const options:any  = {
+    year: "2-digit",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+  const date = new Date(value * 1000);
+  return date.toLocaleDateString(undefined, options);
+}
 
