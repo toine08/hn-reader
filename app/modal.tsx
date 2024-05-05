@@ -1,68 +1,57 @@
-import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet,Button } from 'react-native';
-import React, { useState } from 'react';
-import { Text, View } from '@/components/Themed';
-import { clearAll } from '@/utils/lib';
+import { StatusBar } from "expo-status-bar";
+import { Platform, Button, SafeAreaView, FlatList } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Text, View } from "@/components/Themed";
+import { getAllComments, getLocalTime, storeData } from "@/utils/lib";
+import RenderHTML from "react-native-render-html";
+import ListItem from "@/components/ListItem";
 
-
-
-export default function StoryTypeModal() {
-  return (
-    <View style={styles.container}>
-      <Button title="Clear All" onPress={()=>{clearAll()}}/>
-             <View style={styles.centeredView}>
-        </View>
-
-      {/* Use a light status bar on iOS to account for the black space above the modal */}
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-    </View>
-  );
+interface Comment {
+  id: number;
+  text: string;
+  by: string;
+  score: number;
+  time: number;
+  // Add other properties of a comment here
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
-  },
-  button: {
-    backgroundColor: "#2196F3",
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-    margin: 10
-  },
-  buttonClose: {
-    backgroundColor: "#2196F3",
-  },
-  textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center"
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: "center"
-  }
-});
+interface StoryTypeModalProps {
+  item: number;
+  kids: number[];
+}
+
+export default function StoryTypeModal({ item, kids }: StoryTypeModalProps) {
+  const [comments, setComments] = useState<Comment[]>([]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      const data: any = await getAllComments(kids);
+      setComments(data);
+    };
+
+    fetchComments();
+  }, [kids]);
+
+  return (
+    <SafeAreaView className="flex-1 bg-black h-full">
+    <FlatList
+      data={comments}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={({ item }) => (
+        <View className="bg-neutral-900 m-2 mb-3 w-fit rounded-lg shadow-sm mix-blend-lighten shadow-blue-300 p-4">
+          <Text className="text-base text-white font-bold">{item.by}:</Text>
+          <RenderHTML
+            baseStyle={{ color: "white" }}
+            contentWidth={100}
+            source={{ html: item.text }}
+          />
+          <Text className="text-base h-auto text-white">
+          {getLocalTime(item.time)}
+        </Text>
+        </View>
+      )}
+    />
+    <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
+  </SafeAreaView>
+  );
+}

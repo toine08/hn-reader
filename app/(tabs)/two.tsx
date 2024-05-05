@@ -56,11 +56,13 @@ export default function TabTwoScreen() {
           keyExtractor={(item ) => item.id.toString()}
           onRefresh={onRefresh}
           refreshing={refreshing}
-          renderItem={({ item }) => <ListItem type="trash" item={item}   onPressTrash={async () => {
+          renderItem={({ item }) => <ListItem type="trash" item={item} onPressTrash={async () => {
             console.log("item deleted");
             const updatedArticles: any = await removeArticleId(item.id);
             setSavedArticles(updatedArticles); // Update the state with the returned list of article IDs
-          }} />}          
+          } } onPressComments={function (): void {
+            throw new Error("Function not implemented.");
+          } } />}          
         />
       )}
     </SafeAreaView>

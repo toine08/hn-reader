@@ -7,6 +7,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import TabOneScreen from '.';
+import StoryTypeModal from '../modal';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -32,20 +33,6 @@ export default function TabLayout() {
         options={{
           title: 'News',
           tabBarIcon: ({ color }) => <TabBarIcon name="hacker-news" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => ( 
-              <FontAwesome
-                name="info-circle"
-                size={25}
-                color={Colors[colorScheme ?? 'light'].text}
-                style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-              />
-                )}
-              </Pressable>
-            </Link>
-          ),
         }}
       />
       <Tabs.Screen
@@ -55,6 +42,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="bookmark-o" color={color} />,
         }}
       />
+
     </Tabs>
   );
 }

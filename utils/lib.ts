@@ -29,6 +29,18 @@ export default function getData(choices: string, page: number): Promise<any[]> {
     });
 }
 
+export async function getAllComments(kids: number[]) {
+  try {
+    const commentPromises = kids.map((id: number) => {
+      return fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(res => res.json());
+    });
+    const comments = await Promise.all(commentPromises);
+    return comments;
+  } catch (e) {
+    console.error(e, 'error');
+  }
+}
+
 export async function storeData(value: any){
   console.log('storeData', value)
   try {
