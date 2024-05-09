@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "hn-reader",
+    "name": "hackers-news-reader",
     "slug": "hn-reader",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,13 +16,15 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.toto8.hackers-news-reader"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FF6600"
-      }
+      },
+      "package": "com.toto8.hackers-news-reader"
     },
     "web": {
       "bundler": "metro",
@@ -34,6 +36,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "7762dfc8-fd9d-44b2-aa2c-4b4724092def"
+      }
     }
   }
 }

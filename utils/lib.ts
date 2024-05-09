@@ -11,9 +11,7 @@ export default function getData(choices: string, page: number): Promise<any[]> {
   return fetch(`https://hacker-news.firebaseio.com/v0/${choice}.json`)
     .then((res) => res.json())
     .then((data) => {
-      console.log('Data from API:', data);
       const slicedData: number[] = Array.from(new Set(data.slice(start, end))); // Add type annotation here
-      console.log('Sliced data:', slicedData);
       const uniqueIds = new Set<number>(); // Set to store unique IDs
       const storyPromises = slicedData
         .filter(id => !uniqueIds.has(id)) // Filter out duplicate IDs

@@ -18,9 +18,9 @@ import { useColorScheme } from "@/components/useColorScheme.web";
 
 const PAGE_SIZE = 20; // Number of items to render at once
 
-export default function TabOneScreen() {
+export default function TabThreeScreen() {
   const colorScheme = useColorScheme();
-  const [selectedStoryType, setSelectedStoryType] = useState("newstories");
+  const [selectedStoryType, setSelectedStoryType] = useState("topstories");
   const [stories, setStories] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [modalVisible, setModalVisible] = useState(false);
@@ -45,7 +45,7 @@ export default function TabOneScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center justify-center bg-white dark:dark:bg-zinc-900">
+    <SafeAreaView className="flex-1 items-center justify-center bg-white dark:bg-zinc-900">
       <View className="">
         <FlatList
           className="bg-white dark:bg-black h-full w-auto"
@@ -75,8 +75,8 @@ export default function TabOneScreen() {
         className="m-0 flex-1 items-center justify-end w-full bg-white dark:bg-black h-60 bg-opacity-100"
       >
         <View className="bg-white dark:bg-black items-end">
-        <TouchableOpacity className="mt-5 p-10" onPress={() => setModalVisible(false)}>
-        <FontAwesome name="close" size={24} color={'red'} />
+        <TouchableOpacity className="p-12" onPress={() => setModalVisible(false)}>
+        <FontAwesome name="close" size={24} color={colorScheme === 'dark' ? 'white' : 'black'} />
         </TouchableOpacity>
         </View>
         {selectedItem && (
