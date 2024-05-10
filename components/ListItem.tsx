@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { getLocalTime } from "@/utils/lib";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useColorScheme } from "@/components/useColorScheme";
 import LinkPreview from "./LinkPreview";
+import LoadingPlaceholder from './LoadingPlaceholder'; // Import your LoadingPlaceholder component
+
 
 export default function ListItem({
   type,
@@ -19,6 +21,7 @@ export default function ListItem({
   onPressTrash?: () => Promise<void>;
   onPressComments: () => void;
 }) {
+  const [loading, setLoading] = useState(false); // Add a loading state
   const handlePress = () => {
     if (type === "trash" && onPressTrash) {
       onPressTrash();
@@ -28,6 +31,10 @@ export default function ListItem({
   };
   const colorScheme = useColorScheme();
   const orange = "#FF6000";
+
+  if (loading) { // If loading, return the LoadingPlaceholder component
+    return <LoadingPlaceholder />;
+  }
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-zinc-900 w-fit border-b-2 border-orange-100">
@@ -76,7 +83,7 @@ export default function ListItem({
         </View>
 
       </View>
-      <View className="h-16 bg-red-500 mb-2">
+      <View className="h-fit mb-2">
       <LinkPreview url={item.url} />
 
       </View>
