@@ -1,10 +1,9 @@
-import { Link } from "expo-router";
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Linking, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image } from "react-native";
 import { OpenGraphParser } from "@sleiv/react-native-opengraph-parser";
-import { openBrowserAsync } from "expo-web-browser";
 import * as WebBrowser from "expo-web-browser";
 import LoadingPlaceholder from "./LoadingPlaceholder";
+import { FontAwesome } from "@expo/vector-icons";
 
 type PreviewData = {
   title: string;
@@ -36,13 +35,34 @@ const LinkPreview: React.FC<WebLinkPreviewProps> = ({ url }) => {
 
   const fetchPreview = async () => {
     try {
-      const metadataArray = await OpenGraphParser.extractMeta(url);
+      const metadataArray:any  = await OpenGraphParser.extractMeta(url);
       if (metadataArray.length > 0) {
         const { title = "", url = "" } = metadataArray[0];
         const urlObject = new URL(url);
         const favicon = urlObject
           ? new URL("/favicon.ico", urlObject.origin).href
           : `${hackerNewsIcon}`;
+      if(metadataArray.includes("status: 400")){
+        const filteredMetadataArray = metadataArray.filter((meta: string | string[]) => !meta.includes("status: 400"));
+        if (filteredMetadataArray.length > 0) {
+          const { title = "", url = "" } = filteredMetadataArray[0];
+          const urlObject = new URL(url);
+          const favicon = urlObject
+            ? new URL("/favicon.ico", urlObject.origin).href
+            : `${hackerNewsIcon}`;
+          setPreview({
+            title,
+            url,
+            generator: "",
+            viewport: "",
+            description: "",
+            image: "",
+            favicon,
+          });
+        }
+
+
+      }
 
         setPreview({
           title,
@@ -70,7 +90,7 @@ const LinkPreview: React.FC<WebLinkPreviewProps> = ({ url }) => {
   }
 
   if (error) {
-    return <Text>Error loading preview: {error.message}</Text>;
+    return <Text>Error loading preview: {(error as Error).message}</Text>;
   }
 
   if (loading) {
@@ -80,26 +100,33 @@ const LinkPreview: React.FC<WebLinkPreviewProps> = ({ url }) => {
   }
 
   if (error) {
-    return <Text>Error loading preview: {error.message}</Text>;
+    return <Text>Error loading preview: {(error as Error).message}</Text>;
   }
 
   const { title, description, image, favicon } = preview;
 
   return (
     <TouchableOpacity
-      className="h-fit w-fit bg-white dark:bg-zinc-800 p-4 flex-row items-center"
-      onPress={() => WebBrowser.openBrowserAsync(url)}
-    >
-      <View className="flex-1 flex-row bg-white dark:bg-zinc-800 justify-center items-center">
+    className="h-17 w-fit  bg-white dark:bg-zinc-800 p-4 flex-row items-start justify-start"
+    onPress={() => WebBrowser.openBrowserAsync(url)}
+  >
+    <View className="flex-1 flex-row bg-white dark:bg-zinc-800 justify-center items-center text-justify">
+      {favicon.length !== 0 ? (
         <Image
-          source={{ uri: favicon || "https://via.placeholder.com/16x16" }}
-          className="w-16 bg-transparent h-16 rounded-md mr-4"
+          source={{ uri: favicon }}
+          className="w-16 bg-zinc-600 h-16 rounded-md mr-4"
         />
-        <Text className="text-black dark:text-white text-xs underline">
-          {url?.substring(0, 50)}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      ) : (
+        <FontAwesome name="hacker-news" size={24}  /> // Replace "icon-name" with the actual name of the icon you want to use
+      )}
+<Text 
+  className="h-16 text-black dark:text-white text-xs underline bg-zinc-600 text-center"
+  numberOfLines={1} 
+  ellipsizeMode='clip' 
+>        {url}
+      </Text>
+    </View>
+  </TouchableOpacity>
   );
 };
 

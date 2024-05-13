@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { getLocalTime } from "@/utils/lib";
@@ -31,6 +31,15 @@ export default function ListItem({
   };
   const colorScheme = useColorScheme();
   const orange = "#FF6000";
+  useEffect(() => {
+    const loadPreview = async () => {
+      // simulate loading
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setLoading(false);
+    };
+
+    loadPreview();
+  }, []);
 
   if (loading) { // If loading, return the LoadingPlaceholder component
     return <LoadingPlaceholder />;
@@ -83,10 +92,11 @@ export default function ListItem({
         </View>
 
       </View>
-      <View className="h-fit mb-2">
-      <LinkPreview url={item.url} />
-
+      <View className="h-18">
       </View>
     </View>
   );
 }
+
+
+/* */

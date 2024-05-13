@@ -2,29 +2,28 @@ import { useState, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
-export default function getData(choices: string, page: number): Promise<any[]> {
+export default async function getData(choices: string, page: number): Promise<any[]> {
   console.log('getData', choices, page)
-  const choice = choices || 'topstories';
+  const choice = choices;
   const start = (page - 1) * 50;
   const end = start + 50;
 
-  return fetch(`https://hacker-news.firebaseio.com/v0/${choice}.json`)
-    .then((res) => res.json())
-    .then((data) => {
-      const slicedData: number[] = Array.from(new Set(data.slice(start, end))); // Add type annotation here
-      const uniqueIds = new Set<number>(); // Set to store unique IDs
-      const storyPromises = slicedData
-        .filter(id => !uniqueIds.has(id)) // Filter out duplicate IDs
-        .map((id: number) => {
-          uniqueIds.add(id); // Add ID to the set
-          return fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(res => res.json())
-        });
-      return Promise.all(storyPromises);
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-      throw error;
-    });
+  try {
+    const res = await fetch(`https://hacker-news.firebaseio.com/v0/${choice}.json`);
+    const data = await res.json();
+    const slicedData: number[] = Array.from(new Set(data.slice(start, end))); // Add type annotation here
+    const uniqueIds = new Set<number>(); // Set to store unique IDs
+    const storyPromises = slicedData
+      .filter(id => !uniqueIds.has(id)) // Filter out duplicate IDs
+      .map((id_1: number) => {
+        uniqueIds.add(id_1); // Add ID to the set
+        return fetch(`https://hacker-news.firebaseio.com/v0/item/${id_1}.json`).then(res_1 => res_1.json());
+      });
+    return await Promise.all(storyPromises);
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
 }
 
 export async function getAllComments(kids: number[]) {

@@ -15,6 +15,8 @@ import ListItem from "@/components/ListItem";
 import StoryTypeModal from "../modal";
 import { FontAwesome } from "@expo/vector-icons";
 import { useColorScheme } from "@/components/useColorScheme.web";
+import LoadingPlaceholder from '@/components/LoadingPlaceholder'; // Import your LoadingPlaceholder component
+
 
 const PAGE_SIZE = 20; // Number of items to render at once
 
@@ -25,6 +27,9 @@ export default function TabOneScreen() {
   const [page, setPage] = useState(1);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [loading, setLoading] = useState(false); // Add a loading state
+
+
 
   const handlePressComments = (item: any) => {
     setSelectedItem(item);
@@ -33,8 +38,10 @@ export default function TabOneScreen() {
 
   useEffect(() => {
     const loadStories = async () => {
+      setLoading(true)
       const newStories = await getData(selectedStoryType, page);
       setStories((oldStories) => [...oldStories, ...newStories]);
+      setLoading(false)
     };
 
     loadStories();
@@ -45,10 +52,11 @@ export default function TabOneScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 items-center justify-center bg-white dark:dark:bg-zinc-900">
+    <SafeAreaView className="flex-1 w-fit items-center justify-center bg-white dark:dark:bg-zinc-900">
       <View className="">
         <FlatList
-          className="bg-white dark:bg-black h-full w-auto"
+          className="bg-white dark:bg-black h-full w-fit"
+          initialNumToRender={50}
           data={stories.slice(0, (page + 1) * PAGE_SIZE)}
           keyExtractor={(item, index) => `${item.id}`}
           renderItem={({ item }) => (
@@ -65,8 +73,12 @@ export default function TabOneScreen() {
               onPressComments={() => handlePressComments(item)} // Set the selected item when the comments icon is pressed
             />
           )}
+          ListFooterComponent={loading ? LoadingPlaceholder : null} // Render LoadingPlaceholder when loading
           onEndReached={loadMoreStories}
           onEndReachedThreshold={0.2}
+          getItemLayout={(stories, index) => (
+            {length: 50, offset: 50 * index, index}
+          )}
         />
       </View>
       <Modal
