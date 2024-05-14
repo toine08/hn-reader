@@ -21,7 +21,6 @@ export default function ListItem({
   onPressTrash?: () => Promise<void>;
   onPressComments: () => void;
 }) {
-  const [loading, setLoading] = useState(false); // Add a loading state
   const handlePress = () => {
     if (type === "trash" && onPressTrash) {
       onPressTrash();
@@ -33,24 +32,19 @@ export default function ListItem({
   const orange = "#FF6000";
   useEffect(() => {
     const loadPreview = async () => {
-      // simulate loading
       await new Promise(resolve => setTimeout(resolve, 2000));
-      setLoading(false);
     };
 
     loadPreview();
   }, []);
-
-  if (loading) { // If loading, return the LoadingPlaceholder component
-    return <LoadingPlaceholder />;
-  }
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-zinc-900 w-fit border-b-2 border-orange-100">
       <TouchableOpacity
         className=" justify-between p-1 pb-4"
         onPress={() => {
-          WebBrowser.openBrowserAsync(item.url, { readerMode: true });        }}
+          console.log(item.url);
+          WebBrowser.openBrowserAsync(item.url, { readerMode: true }); }}
       >
         <Text className="text-base h-auto text-black dark:text-white">
           {item.title}

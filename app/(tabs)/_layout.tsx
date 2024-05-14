@@ -6,10 +6,8 @@ import { Pressable } from "react-native";
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-import TabOneScreen from ".";
-import StoryTypeModal from "../modal";
 
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
+
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
@@ -30,16 +28,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: "New stories",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="hacker-news" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="three"
+        name="topStories"
         options={{
           title: "Top stories",
           tabBarIcon: ({ color }) => (
@@ -48,16 +37,25 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="four"
+        name="newStories"
         options={{
-          title: "Best stories",
+          title: "New stories",
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="heart" color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="five"
+        name="index"
+        options={{
+          title: "Best stories",
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="hacker-news" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="jobStories"
         options={{
           title: "Job stories",
           tabBarIcon: ({ color }) => (
@@ -66,7 +64,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="bookmarks"
         options={{
           title: "Bookmarks",
           tabBarIcon: ({ color }) => (

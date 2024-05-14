@@ -23,7 +23,7 @@ type Article = {
   // include other properties of the article here
 };
 
-export default function TabTwoScreen() {
+export default function bookmarksScreen() {
   const [savedArticles, setSavedArticles] = useState<Article[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
