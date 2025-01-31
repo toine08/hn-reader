@@ -17,7 +17,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.toto8.hackers-news-reader"
+      "bundleIdentifier": "com.toto8.hackers-news-reader",
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
