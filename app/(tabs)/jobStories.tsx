@@ -7,8 +7,7 @@ import {
   SafeAreaView,
   Modal,
 } from "react-native";
-import getData from "../../utils/lib";
-import { storeData } from "@/utils/lib";
+import { getStories, storeData } from "@/utils/lib";  // Remove default import
 import ListItem from "@/components/ListItem";
 import StoryTypeModal from "../modal";
 import { FontAwesome } from "@expo/vector-icons";
@@ -50,7 +49,7 @@ export default function jobStoriesScreen() {
   useEffect(() => {
     const loadStories = async () => {
       setLoading(true)
-      const newStories = await getData(selectedStoryType, page);
+      const newStories = await getStories(selectedStoryType, page);
       setStories((oldStories) => [...oldStories, ...newStories]);
       setLoading(false)
     };
@@ -69,21 +68,21 @@ export default function jobStoriesScreen() {
           className="bg-white dark:bg-black h-full w-fit"
           initialNumToRender={5}
           data={stories.slice(0, (page + 1) * PAGE_SIZE)}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()} // Ensure unique keys
           renderItem={({ item }) => (
             <ListItem
               type="save"
+              storyType={selectedStoryType}  // Add the required storyType prop
               item={item}
-              onPressSave={()=>{onPressSave}}
-              onPressComments={()=>{onPressComments}}// Set the selected item when the comments icon is pressed
+              onPressSave={() => onPressSave(item)} // Pass the correct item
+              onPressComments={() => onPressComments(item)} // Pass the correct item
             />
           )}
-          ListFooterComponent={loading ? LoadingPlaceholder : null} // Render LoadingPlaceholder when loading
+          ListFooterComponent={loading ? <LoadingPlaceholder /> : null} // Render LoadingPlaceholder when loading
           onEndReached={loadMoreStories}
           onEndReachedThreshold={0.2}
           getItemLayout={getItemLayout}
         />
-
       </View>
       <Modal
         visible={modalVisible}

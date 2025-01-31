@@ -7,10 +7,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Modal,
-  Button
 } from "react-native";
-import getData from "../../utils/lib";
-import { storeData } from "@/utils/lib";
+import { getStories, storeData } from "@/utils/lib";  // Remove default import
 import ListItem from "@/components/ListItem";
 import StoryTypeModal from "../modal";
 import { FontAwesome } from "@expo/vector-icons";
@@ -53,7 +51,7 @@ export default function topStoriesScreen() {
   useEffect(() => {
     const loadStories = async () => {
       setLoading(true)
-      const newStories = await getData(selectedStoryType, page);
+      const newStories = await getStories(selectedStoryType, page);
       setStories((oldStories) => [...oldStories, ...newStories]);
       setLoading(false)
     };
@@ -66,27 +64,38 @@ export default function topStoriesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 w-fit items-center justify-center bg-white dark:dark:bg-zinc-900">
+    <SafeAreaView className="flex-1 w-fit items-center justify-center bg-white dark:bg-zinc-900">
+      <TouchableOpacity
+        onPress={() => loadMoreStories()}
+        className="hidden top-0 p-3 pt-1 pb-1 flex-row h-fit w-28 z-10 absolute bg-zinc-900 opacity-90 rounded-md items-center justify-between"
+      >
+        <FontAwesome
+          name="refresh"
+          size={24}
+          color={colorScheme === "dark" ? "white" : "black"}
+        />
+        <Text className="text-lg ml-2 text-black dark:text-white">Refresh</Text>
+      </TouchableOpacity>
       <View className="flex-1 w-full">
         <FlatList
           className="bg-white dark:bg-black h-full w-fit"
           initialNumToRender={5}
           data={stories.slice(0, (page + 1) * PAGE_SIZE)}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={(item) => item.id.toString()} // Ensure unique keys
           renderItem={({ item }) => (
             <ListItem
               type="save"
+              storyType={selectedStoryType}  // Add the required storyType prop
               item={item}
-              onPressSave={()=>{onPressSave}}
-              onPressComments={()=>{onPressComments}}// Set the selected item when the comments icon is pressed
+              onPressSave={() => onPressSave(item)} // Pass the correct item
+              onPressComments={() => onPressComments(item)} // Pass the correct item
             />
           )}
-          ListFooterComponent={loading ? LoadingPlaceholder : null} // Render LoadingPlaceholder when loading
+          ListFooterComponent={loading ? <LoadingPlaceholder /> : null} // Render LoadingPlaceholder when loading
           onEndReached={loadMoreStories}
           onEndReachedThreshold={0.2}
           getItemLayout={getItemLayout}
         />
-
       </View>
       <Modal
         visible={modalVisible}

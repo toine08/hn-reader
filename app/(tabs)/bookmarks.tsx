@@ -1,95 +1,115 @@
-import React, { useState, useEffect } from "react";
-import { useFocusEffect } from "@react-navigation/native";
-
+import React, { useState } from "react";
+import { useRouter } from "expo-router";
 import {
   FlatList,
-  View,
-  Text,
   SafeAreaView,
-  Button,
-  TouchableOpacity,
   Modal,
+  View,
+  TouchableOpacity
 } from "react-native";
-import { getStorySaved, removeArticleId } from "@/utils/lib"; // import the functions
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useFocusEffect } from "expo-router";
+import { getStorySaved, removeArticle } from "@/utils/lib";
 import ListItem from "@/components/ListItem";
 import StoryTypeModal from "../modal";
+import { Article } from "@/utils/types";
+import { FontAwesome } from '@expo/vector-icons';
+import { useColorScheme } from "@/components/useColorScheme";
 
-type Article = {
-  id: number;
-  title: string;
-  url: string;
-  kids: number[];
-  // include other properties of the article here
-};
-
-export default function bookmarksScreen() {
+export default function Bookmarks() { 
+  const colorScheme = useColorScheme();
+  const router = useRouter();
   const [savedArticles, setSavedArticles] = useState<Article[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Article | null>(null);
 
-
-  const handlePressComments = (item: any) => {
+  const handlePressComments = (item: Article) => {
     setSelectedItem(item);
     setModalVisible(true);
   };
 
-
-  const fetchSavedArticles = async () => {
-    const articles: any = await getStorySaved();
-    setSavedArticles(articles);
+  const handlePressTrash = async (articleId: number) => {
+    try {
+      const updatedArticles = await removeArticle(articleId);
+      setSavedArticles(updatedArticles);
+    } catch (error) {
+      console.error('Error removing article:', error);
+    }
   };
+
   useFocusEffect(
     React.useCallback(() => {
+      const fetchSavedArticles = async () => {
+        try {
+          const articles = await getStorySaved();
+          setSavedArticles(articles || []);
+        } catch (error) {
+          console.error('Error fetching saved articles:', error);
+        }
+      };
+
       fetchSavedArticles();
     }, [])
   );
 
-  useEffect(() => {
-    fetchSavedArticles();
-  }, []);
-
-  const onRefresh = React.useCallback(() => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    fetchSavedArticles().then(() => setRefreshing(false));
-  }, []);
+    try {
+      const articles = await getStorySaved();
+      setSavedArticles(articles || []);
+    } catch (error) {
+      console.error('Error refreshing saved articles:', error);
+    }
+    setRefreshing(false);
+  };
 
   return (
-    <SafeAreaView className="flex-1 justify-center items-center w-full h-full dark:bg-zinc-900">
-      {savedArticles.length === 0 ? (
-        <Text className="text-white text-lg font-bold">No saved articles</Text>
-      ) : (
+    <SafeAreaView className="flex-1 w-full bg-white dark:bg-zinc-900">
+      <View className="flex-1 w-full">
         <FlatList
-          className="bg-transparent w-full h-full"
+          className="bg-white dark:bg-black h-full w-fit"
           data={savedArticles}
-          keyExtractor={(item ) => item.id.toString()}
-          onRefresh={onRefresh}
+          keyExtractor={(item) => item.id.toString()} // Ensure unique keys
+          renderItem={({ item }) => (
+            <ListItem
+              type="trash"
+              storyType="bookmarks"  // Add the required storyType prop
+              item={item}
+              onPressTrash={() => handlePressTrash(item.id)}
+              onPressComments={() => handlePressComments(item)}
+            />
+          )}
           refreshing={refreshing}
-          renderItem={({ item }) => <ListItem type="trash" item={item} onPressTrash={async () => {
-            console.log("item deleted");
-            const updatedArticles: any = await removeArticleId(item.id);
-            setSavedArticles(updatedArticles); // Update the state with the returned list of article IDs
-          } } onPressComments={() => {
-            setSelectedItem(item);
-            setModalVisible(true);
-          }} />}          
+          onRefresh={handleRefresh}
         />
-      )}
-       <Modal
+      </View>
+      <Modal
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
-        className="m-0 flex-1 items-center justify-end w-full bg-white dark:bg-black h-8 0 bg-opacity-100"
+        animationType="slide"
+        presentationStyle="pageSheet"
       >
-        <View className="bg-white dark:bg-black items-end">
-        <TouchableOpacity className="mt-5 p-10" onPress={() => setModalVisible(false)}>
-        <FontAwesome name="close" size={24} color={'red'} />
-        </TouchableOpacity>
-        </View>
-        {selectedItem && (
-          <StoryTypeModal item={selectedItem.id} kids={selectedItem.kids} />
-        )}
-
+        <SafeAreaView className="flex-1 bg-white dark:bg-black">
+          <View className="flex-row justify-end items-center px-4 py-2 border-b border-zinc-200 dark:border-zinc-800">
+            <TouchableOpacity 
+              className="p-2" 
+              onPress={() => setModalVisible(false)}
+            >
+              <FontAwesome 
+                name="close" 
+                size={24} 
+                color={colorScheme === 'dark' ? '#fff' : '#000'} 
+              />
+            </TouchableOpacity>
+          </View>
+          
+          {selectedItem && (
+            <StoryTypeModal 
+              item={selectedItem.id}
+              kids={selectedItem.kids} 
+            />
+          )}
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
