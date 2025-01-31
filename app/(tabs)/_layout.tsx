@@ -1,12 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { Link, Tabs } from "expo-router";
-import { Pressable } from "react-native";
-
+import { Tabs } from "expo-router";
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
-
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
@@ -22,9 +19,16 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
+        tabBarStyle: {
+          backgroundColor: colorScheme === 'dark' ? '#18181b' : '#ffffff',
+          borderTopColor: colorScheme === 'dark' ? '#27272a' : '#e4e4e7',
+        },
+        tabBarInactiveTintColor: colorScheme === 'dark' ? '#71717a' : '#52525b',
+        headerStyle: {
+          backgroundColor: colorScheme === 'dark' ? '#18181b' : '#ffffff',
+        },
+        headerTintColor: colorScheme === 'dark' ? '#ffffff' : '#000000',
       }}
     >
       <Tabs.Screen
@@ -54,6 +58,15 @@ export default function TabLayout() {
           ),
         }}
       />
+       <Tabs.Screen
+        name="bookmarks"
+        options={{
+          title: "Bookmarks",
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="bookmark-o" color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="jobStories"
         options={{
@@ -63,15 +76,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="bookmarks"
-        options={{
-          title: "Bookmarks",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="bookmark-o" color={color} />
-          ),
-        }}
-      />
+     
     </Tabs>
   );
 }
