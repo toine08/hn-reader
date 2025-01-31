@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect, memo } from "react";
+import { View, Text, TouchableOpacity, Image, Linking } from "react-native";
 import { OpenGraphParser } from "@sleiv/react-native-opengraph-parser";
 import * as WebBrowser from "expo-web-browser";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import { FontAwesome } from "@expo/vector-icons";
+import { useColorScheme } from "@/components/useColorScheme";
 
 type PreviewData = {
   title: string;
@@ -19,64 +20,31 @@ interface WebLinkPreviewProps {
   url: string;
 }
 
-const LinkPreview: React.FC<WebLinkPreviewProps> = ({ url }) => {
-  const hackerNewsIcon = "../assets/favicon.ico";
-  const [preview, setPreview] = useState<PreviewData>({
-    title: "",
-    url: "",
-    generator: "",
-    viewport: "",
-    description: "",
-    image: "",
-    favicon: "", // Add 'favicon' property to the 'PreviewData' interface
-  });
+const LinkPreview: React.FC<WebLinkPreviewProps> = memo(({ url }) => {
+  const colorScheme = useColorScheme();
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [hostname, setHostname] = useState<string>('');
+
+  const getFaviconUrl = (urlString: string) => {
+    try {
+      const urlObject = new URL(urlString);
+      setHostname(urlObject.hostname);
+      return `https://www.google.com/s2/favicons?domain=${urlObject.hostname}&sz=128`;
+    } catch {
+      return '';
+    }
+  };
 
   const fetchPreview = async () => {
     try {
-      const metadataArray:any  = await OpenGraphParser.extractMeta(url);
-      if (metadataArray.length > 0) {
-        const { title = "", url = "" } = metadataArray[0];
-        const urlObject = new URL(url);
-        const favicon = urlObject
-          ? new URL("/favicon.ico", urlObject.origin).href
-          : `${hackerNewsIcon}`;
-      if(metadataArray.includes("status: 400")){
-        const filteredMetadataArray = metadataArray.filter((meta: string | string[]) => !meta.includes("status: 400"));
-        if (filteredMetadataArray.length > 0) {
-          const { title = "", url = "" } = filteredMetadataArray[0];
-          const urlObject = new URL(url);
-          const favicon = urlObject
-            ? new URL("/favicon.ico", urlObject.origin).href
-            : `${hackerNewsIcon}`;
-          setPreview({
-            title,
-            url,
-            generator: "",
-            viewport: "",
-            description: "",
-            image: "",
-            favicon,
-          });
-        }
-
-
-      }
-
-        setPreview({
-          title,
-          url,
-          generator: "",
-          viewport: "",
-          description: "",
-          image: "",
-          favicon,
-        });
-      }
+      // Instead of directly fetching the URL, just parse it and get the favicon
+      const favicon = getFaviconUrl(url);
       setLoading(false);
-    } catch (error: any) {
-      setError(error);
+      return { favicon };
+    } catch (error) {
+      console.error('Error processing URL:', error);
+      setError('Unable to load preview');
       setLoading(false);
     }
   };
@@ -85,49 +53,65 @@ const LinkPreview: React.FC<WebLinkPreviewProps> = ({ url }) => {
     fetchPreview();
   }, [url]);
 
-  if (loading) {
-    return <Text>Loading...</Text>;
-  }
-
-  if (error) {
-    return <Text>Error loading preview: {(error as Error).message}</Text>;
-  }
+  const handlePress = () => {
+    Linking.openURL(url).catch(err => {
+      console.error('Error opening URL:', err);
+      setError('Could not open link');
+    });
+  };
 
   if (loading) {
     return (
-      <LoadingPlaceholder />
+      <View className="bg-zinc-100 dark:bg-zinc-800 rounded-md p-2">
+        <Text className="text-xs text-zinc-500">Loading preview...</Text>
+      </View>
     );
   }
 
   if (error) {
-    return <Text>Error loading preview: {(error as Error).message}</Text>;
+    return (
+      <TouchableOpacity
+        className="bg-zinc-100 dark:bg-zinc-800 rounded-md p-2"
+        onPress={handlePress}
+      >
+        <Text className="text-xs text-zinc-500">{hostname || url}</Text>
+      </TouchableOpacity>
+    );
   }
-
-  const { title, description, image, favicon } = preview;
 
   return (
     <TouchableOpacity
-    className="h-17 w-fit  bg-white dark:bg-zinc-800 p-4 flex-row items-start justify-start"
-    onPress={() => WebBrowser.openBrowserAsync(url)}
-  >
-    <View className="flex-1 flex-row bg-white dark:bg-zinc-800 justify-center items-center text-justify">
-      {favicon.length !== 0 ? (
-        <Image
-          source={{ uri: favicon }}
-          className="w-16 bg-zinc-600 h-16 rounded-md mr-4"
-        />
-      ) : (
-        <FontAwesome name="hacker-news" size={24}  /> // Replace "icon-name" with the actual name of the icon you want to use
-      )}
-<Text 
-  className="h-16 text-black dark:text-white text-xs underline bg-zinc-600 text-center"
-  numberOfLines={1} 
-  ellipsizeMode='clip' 
->        {url}
-      </Text>
-    </View>
-  </TouchableOpacity>
+      className="bg-zinc-100 dark:bg-zinc-800 rounded-md overflow-hidden"
+      onPress={handlePress}
+    >
+      <View className="flex-row items-center p-2 space-x-2">
+        <View className="w-5 h-5 justify-center items-center flex-shrink-0">
+          {hostname ? (
+            <Image
+              source={{ uri: `https://www.google.com/s2/favicons?domain=${hostname}&sz=128` }}
+              className="w-4 h-4 rounded-sm"
+              resizeMode="contain"
+            />
+          ) : (
+            <FontAwesome 
+              name="link" 
+              size={14} 
+              color={colorScheme === 'dark' ? '#fff' : '#000'} 
+            />
+          )}
+        </View>
+        <Text 
+          className="flex-1 text-xs text-black dark:text-white"
+          numberOfLines={1}
+          ellipsizeMode='tail'
+        >
+          {hostname || url}
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
-};
+}, (prevProps, nextProps) => prevProps.url === nextProps.url);
+
+LinkPreview.displayName = 'LinkPreview';
 
 export default LinkPreview;
