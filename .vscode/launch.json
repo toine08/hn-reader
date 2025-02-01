@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "radon-ide",
+            "request": "launch",
+            "name": "Radon IDE panel",
+            "isExpo": true,
+            "ios": {
+                "scheme": "hackersnewsreader"
+            },
+            "android": {}
+        }
+    ]
+}

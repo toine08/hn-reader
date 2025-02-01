@@ -20,12 +20,7 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "resourceClass": "m-medium",
-        "cache": {
-          "paths": [
-            "~/.cocoapods"
-          ]
-        }
+        "resourceClass": "m-medium"
       },
       "android": {
         "buildType": "app-bundle"

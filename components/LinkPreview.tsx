@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from "react";
-import { View, Text, TouchableOpacity, Image, Linking } from "react-native";
+import { View, Text, Image } from "react-native";
 import { OpenGraphParser } from "@sleiv/react-native-opengraph-parser";
 import * as WebBrowser from "expo-web-browser";
 import LoadingPlaceholder from "./LoadingPlaceholder";
@@ -53,12 +53,6 @@ const LinkPreview: React.FC<WebLinkPreviewProps> = memo(({ url }) => {
     fetchPreview();
   }, [url]);
 
-  const handlePress = () => {
-    Linking.openURL(url).catch(err => {
-      console.error('Error opening URL:', err);
-      setError('Could not open link');
-    });
-  };
 
   if (loading) {
     return (
@@ -70,20 +64,14 @@ const LinkPreview: React.FC<WebLinkPreviewProps> = memo(({ url }) => {
 
   if (error) {
     return (
-      <TouchableOpacity
-        className="bg-zinc-100 dark:bg-zinc-800 rounded-md p-2"
-        onPress={handlePress}
-      >
+      <View className="bg-zinc-100 dark:bg-zinc-800 rounded-md p-2">
         <Text className="text-xs text-zinc-500">{hostname || url}</Text>
-      </TouchableOpacity>
+      </View>
     );
   }
 
   return (
-    <TouchableOpacity
-      className="bg-zinc-100 dark:bg-zinc-800 rounded-md overflow-hidden"
-      onPress={handlePress}
-    >
+    <View className="bg-zinc-100 dark:bg-zinc-800 rounded-md overflow-hidden">
       <View className="flex-row items-center p-2 space-x-2">
         <View className="w-5 h-5 justify-center items-center flex-shrink-0">
           {hostname ? (
@@ -108,7 +96,7 @@ const LinkPreview: React.FC<WebLinkPreviewProps> = memo(({ url }) => {
           {hostname || url}
         </Text>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }, (prevProps, nextProps) => prevProps.url === nextProps.url);
 

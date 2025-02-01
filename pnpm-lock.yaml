@@ -29,6 +29,9 @@ dependencies:
   expo:
     specifier: ~52.0.0
     version: 52.0.28(@babel/core@7.26.7)(@babel/preset-env@7.26.7)(react-native@0.76.6)(react@18.3.1)
+  expo-asset:
+    specifier: ~11.0.3
+    version: 11.0.3(expo@52.0.28)(react-native@0.76.6)(react@18.3.1)
   expo-font:
     specifier: ~13.0.3
     version: 13.0.3(expo@52.0.28)(react@18.3.1)
@@ -48,8 +51,8 @@ dependencies:
     specifier: ~4.0.7
     version: 4.0.7(expo@52.0.28)(react-native-web@0.19.13)(react-native@0.76.6)
   expo-updates:
-    specifier: ~0.26.13
-    version: 0.26.13(expo@52.0.28)(react@18.3.1)
+    specifier: '~0.26.15eas '
+    version: 0.26.15(expo@52.0.28)(react@18.3.1)
   expo-web-browser:
     specifier: ~14.0.2
     version: 14.0.2(expo@52.0.28)(react-native@0.76.6)
@@ -85,6 +88,9 @@ devDependencies:
   '@types/react':
     specifier: ~18.3.18
     version: 18.3.18
+  babel-preset-expo:
+    specifier: ^12.0.6
+    version: 12.0.6(@babel/core@7.26.7)(@babel/preset-env@7.26.7)
   jest:
     specifier: ^29.7.0
     version: 29.7.0
@@ -4244,8 +4250,8 @@ packages:
       jest-util: 29.7.0
     dev: true
 
-  /expo-asset@11.0.2(expo@52.0.28)(react-native@0.76.6)(react@18.3.1):
-    resolution: {integrity: sha512-We3Td5WsNsNQyXoheLnuwic6JCOt/pqXqIIyWaZ3z/PeHrA+SwoQdI18MjDhkudLK08tbIVyDSUW8IJHXa04eg==}
+  /expo-asset@11.0.3(expo@52.0.28)(react-native@0.76.6)(react@18.3.1):
+    resolution: {integrity: sha512-vgJnC82IooAVMy5PxbdFIMNJhW4hKAUyxc5VIiAPPf10vFYw6CqHm+hrehu4ST1I4bvg5PV4uKdPxliebcbgLg==}
     peerDependencies:
       expo: '*'
       react: '*'
@@ -4454,8 +4460,8 @@ packages:
       expo: 52.0.28(@babel/core@7.26.7)(@babel/preset-env@7.26.7)(react-native@0.76.6)(react@18.3.1)
     dev: false
 
-  /expo-updates@0.26.13(expo@52.0.28)(react@18.3.1):
-    resolution: {integrity: sha512-rNJQ5eCGOGy6Ewxop1Fz3Kh5HXxSoIH480qrbJYqUDrql2J4Fp7cnv36B+Kwz+r+47gwGm1VgzwUbA2PctQc+w==}
+  /expo-updates@0.26.15(expo@52.0.28)(react@18.3.1):
+    resolution: {integrity: sha512-wcsa6rcBNgB1yVNW8mBBFq45kaTRdu8KZHKlahV0IIX5INlRyEvlN6FYdHLe6X5LDUlnkom+cdFxGL7fsFGugw==}
     hasBin: true
     peerDependencies:
       expo: '*'
@@ -4517,7 +4523,7 @@ packages:
       '@expo/metro-config': 0.19.9
       '@expo/vector-icons': 14.0.4
       babel-preset-expo: 12.0.6(@babel/core@7.26.7)(@babel/preset-env@7.26.7)
-      expo-asset: 11.0.2(expo@52.0.28)(react-native@0.76.6)(react@18.3.1)
+      expo-asset: 11.0.3(expo@52.0.28)(react-native@0.76.6)(react@18.3.1)
       expo-constants: 17.0.5(expo@52.0.28)(react-native@0.76.6)
       expo-file-system: 18.0.7(expo@52.0.28)(react-native@0.76.6)
       expo-font: 13.0.3(expo@52.0.28)(react@18.3.1)
