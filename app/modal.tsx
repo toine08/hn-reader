@@ -1,11 +1,10 @@
 import { StatusBar } from "expo-status-bar";
-import { Platform, Button, SafeAreaView, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent } from "react-native";
+import { Platform, SafeAreaView, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Text, View } from "@/components/Themed";
-import { getAllComments, getLocalTime, storeData } from "@/utils/lib";
+import { getAllComments, getLocalTime } from "@/utils/lib";
 import RenderHTML from "react-native-render-html";
 import { useColorScheme } from "@/components/useColorScheme";
-import { Article } from "@/utils/types";
 import { StoryTypeModalProps, Comment } from "@/utils/interfaces";
 
 const CommentItem = ({ comment, windowWidth, parentId = '' }: { 
