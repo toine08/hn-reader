@@ -58,21 +58,21 @@ export default function TabLayout() {
           ),
         }}
       />
-       <Tabs.Screen
-        name="bookmarks"
-        options={{
-          title: "Bookmarks",
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="bookmark-o" color={color} />
-          ),
-        }}
-      />
       <Tabs.Screen
         name="jobStories"
         options={{
           title: "Job stories",
           tabBarIcon: ({ color }) => (
             <TabBarIcon name="search" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="bookmarks"
+        options={{
+          title: "Bookmarks",
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="bookmark-o" color={color} />
           ),
         }}
       />
