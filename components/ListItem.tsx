@@ -4,7 +4,6 @@ import * as WebBrowser from 'expo-web-browser';
 import { ListItemProps } from "@/utils/interfaces";
 import { useColorScheme } from "@/components/useColorScheme";
 import LinkPreview from "./LinkPreview";
-import LoadingPlaceholder from "./LoadingPlaceholder";
 import { Article } from "@/utils/types";
 
 const ListItem: React.FC<ListItemProps> = memo(({
