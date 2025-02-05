@@ -26,5 +26,6 @@ export interface ListItemProps {
 
 export interface ScrollViewProps {
   story: string;
+  saveOrTrash: ListItemProps["type"];
   onItemSelect?: (item: Article)=>void;
 }
