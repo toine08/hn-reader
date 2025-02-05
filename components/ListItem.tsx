@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import * as WebBrowser from 'expo-web-browser';
 import { ListItemProps } from "@/utils/interfaces";
 import { useColorScheme } from "@/components/useColorScheme";
