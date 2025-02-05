@@ -23,3 +23,8 @@ export interface ListItemProps {
   onPressTrash?: () => void;
   onPressComments?: () => void;
 }
+
+export interface ScrollViewProps {
+  story: string;
+  onItemSelect?: (item: Article)=>void;
+}
