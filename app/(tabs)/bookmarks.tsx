@@ -12,7 +12,6 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { ScrollView } from "@/components/ScrollView";
 
 export default function Bookmarks() { 
-  const colorScheme = useColorScheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Article | null>(null);
 
@@ -31,33 +30,22 @@ export default function Bookmarks() {
             onItemSelect={handlePressComments}
             />
       <Modal
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <SafeAreaView className="flex-1 bg-white dark:bg-black">
-          <View className="flex-row justify-end items-center px-4 py-2 border-b border-zinc-200 dark:border-zinc-800">
-            <TouchableOpacity 
-              className="p-2" 
-              onPress={() => setModalVisible(false)}
+              visible={modalVisible}
+              onRequestClose={() => setModalVisible(false)}
+              className="m-0 flex-1 items-center justify-end w-full bg-white dark:bg-black h-60 bg-opacity-100"
             >
-              <FontAwesome 
-                name="close" 
-                size={24} 
-                color={colorScheme === 'dark' ? '#fff' : '#000'} 
-              />
-            </TouchableOpacity>
-          </View>
-          
-          {selectedItem && (
-            <StoryTypeModal 
-              item={selectedItem.id}
-              kids={selectedItem.kids} 
-            />
-          )}
-        </SafeAreaView>
-      </Modal>
+              <View className="bg-white dark:bg-black items-end">
+                <TouchableOpacity
+                  className="mt-5 p-10"
+                  onPress={() => setModalVisible(false)}
+                >
+                  <FontAwesome name="close" size={24} color={"red"} />
+                </TouchableOpacity>
+              </View>
+              {selectedItem && (
+                <StoryTypeModal item={selectedItem.id} kids={selectedItem.kids} />
+              )}
+            </Modal>
     </SafeAreaView>
   );
 }
