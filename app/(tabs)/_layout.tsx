@@ -61,9 +61,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="jobStories"
         options={{
-          title: "Job stories",
+          title: "Job board",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="search" color={color} />
+            <TabBarIcon name="briefcase" color={color} />
           ),
         }}
       />
@@ -72,7 +72,7 @@ export default function TabLayout() {
         options={{
           title: "Bookmarks",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="bookmark-o" color={color} />
+            <TabBarIcon name="bookmark" color={color} />
           ),
         }}
       />
