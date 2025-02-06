@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, FlatList, Dimensions } from "react-native
 import ListItem from "@/components/ListItem";
 import { Article } from "@/utils/types";
 import { ScrollViewProps } from "@/utils/interfaces";
-import { getStories, getStorySaved, saveArticle, storeData } from "@/utils/lib";
+import { getStories, getStorySaved, removeArticle, saveArticle, storeData } from "@/utils/lib";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import { useFocusEffect } from "expo-router";
 
@@ -99,6 +99,15 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
     }
   };
 
+  const handlePressTrash = async (articleId: number) => {
+    try {
+      const updatedArticles = await removeArticle(articleId);
+      setStories(updatedArticles);
+    } catch (error) {
+      console.error('Error removing article:', error);
+    }
+  };
+
   const onPressComments = useCallback(
     (item: Article) => handlePressComments(item),
     []
@@ -130,7 +139,8 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
             storyType={selectedStoryType} // Add the required storyType prop
             item={item}
             onPressSave={() => onPressSave(item)} // Pass the correct item
-            onPressComments={() => onPressComments(item)} // Pass the correct item
+            onPressComments={() => onPressComments(item)} 
+            onPressTrash={() => handlePressTrash(item.id)}// Fix: Wrap in callback
           />
         )}
         ListFooterComponent={loading ? <LoadingPlaceholder /> : null} // Render LoadingPlaceholder when loading
