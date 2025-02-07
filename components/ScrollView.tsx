@@ -87,6 +87,11 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
   };
 
   const handleRefresh = async () => {
+    if (selectedStoryType === 'bookmarks') {
+      setRefreshing(false);
+      return;
+    }
+    
     setRefreshing(true);
     try {
       const articles = await getStories(selectedStoryType, 1);
@@ -165,8 +170,8 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
         ListFooterComponent={loading ? <LoadingPlaceholder /> : null} // Render LoadingPlaceholder when loading
         onEndReached={loadMoreStories}
         onEndReachedThreshold={0.2}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
+        refreshing={selectedStoryType !== 'bookmarks' && refreshing}
+        onRefresh={selectedStoryType !== 'bookmarks' ? handleRefresh : undefined}
         maintainVisibleContentPosition={{
             minIndexForVisible: 0,
             autoscrollToTopThreshold: 10,
