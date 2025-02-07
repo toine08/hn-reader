@@ -2,7 +2,6 @@ import React, { memo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import * as WebBrowser from 'expo-web-browser';
 import { ListItemProps } from "@/utils/interfaces";
-import { useColorScheme } from "@/components/useColorScheme";
 import LinkPreview from "./LinkPreview";
 import { Article } from "@/utils/types";
 
@@ -13,14 +12,15 @@ const ListItem: React.FC<ListItemProps> = memo(({
   onPressSave,
   onPressTrash,
   onPressComments,
+  savedArticles,
 }) => {
-  const colorScheme = useColorScheme();
+  const isSaved = savedArticles.includes(item.id);
 
-  const handlePress = () => {
-    if (type === "trash" && onPressTrash) {
-      onPressTrash();
-    } else if (onPressSave) {
-      onPressSave();
+  const handleToggleSave = () => {
+    if (isSaved) {
+      onPressTrash?.(item.id); // Removes bookmarked item
+    } else {
+      onPressSave?.(item);    // Saves new item
     }
   };
 
@@ -50,32 +50,38 @@ const ListItem: React.FC<ListItemProps> = memo(({
           </View>
         </TouchableOpacity>
         
-        {/* Buttons Section */}
-        <View className="flex-row gap-3 mb-3">
+         {/* Buttons Section */}
+         <View className="flex-row gap-3 mb-3">
           {storyType === "bookmarks" ? (
-            <TouchableOpacity 
-              onPress={onPressTrash}
+            // Only Delete button
+            <TouchableOpacity
+              onPress={() => onPressTrash?.(item.id)}
               className="bg-red-600 px-3 py-2 rounded-md"
             >
               <Text className="text-white text-sm">Delete</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity 
-              onPress={handlePress}
-              className="bg-orange-600 px-3 py-2 rounded-md"
+            // Toggling Save/Delete
+            <TouchableOpacity
+              onPress={handleToggleSave}
+              className={`px-3 py-2 rounded-md ${
+                isSaved ? "bg-red-600" : "bg-orange-600"
+              }`}
             >
-              <Text className="text-white text-sm">Save</Text>
+              <Text className="text-white text-sm">
+                {isSaved ? "Delete" : "Save"}
+              </Text>
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity 
-            onPress={onPressComments}
-            className="bg-zinc-200 dark:bg-zinc-800 px-3 py-2 rounded-md"
-          >
-            <Text className="text-black dark:text-white text-sm">
-              Comments
-            </Text>
-          </TouchableOpacity>
+          {onPressComments && (
+            <TouchableOpacity 
+              onPress={onPressComments}
+              className="bg-zinc-200 dark:bg-zinc-800 px-3 py-2 rounded-md"
+            >
+              <Text className="text-black dark:text-white text-sm">Comments</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Link Preview Section */}
@@ -88,15 +94,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
         )}
       </View>
     </View>
-  );
-}, (prevProps, nextProps) => {
-  // Custom comparison for memoization
-  return prevProps.item.id === nextProps.item.id &&
-    prevProps.type === nextProps.type &&
-    prevProps.storyType === nextProps.storyType;
-});
-
-ListItem.displayName = 'ListItem'; // For debugging
-
+)
+})
 export default ListItem;
 

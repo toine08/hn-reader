@@ -28,6 +28,7 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Article | null>(null);
+  const [savedArticleIds, setSavedArticleIds] = useState<number[]>([]);
 
   if(selectedStoryType === 'bookmarks'){
    useFocusEffect(
@@ -67,6 +68,20 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
   }, [selectedStoryType, page]);
 }
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadSavedArticleIds = async () => {
+        try {
+          const saved = await getStorySaved();
+          setSavedArticleIds(saved.map(article => article.id));
+        } catch (error) {
+          console.error('Error loading saved article IDs:', error);
+        }
+      };
+      loadSavedArticleIds();
+    }, [])
+  );
+
   const loadMoreStories = () => {
     setPage((oldPage) => oldPage + 1);
   };
@@ -92,8 +107,8 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
 
   const onPressSave = async (item: Article) => {
     try {
-      await saveArticle(item); // Save the article
-      alert("Article saved!");
+      await saveArticle(item);
+      setSavedArticleIds(prev => [...prev, item.id]);
     } catch (error) {
       console.error("Error saving article:", error);
     }
@@ -101,8 +116,11 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
 
   const handlePressTrash = async (articleId: number) => {
     try {
-      const updatedArticles = await removeArticle(articleId);
-      setStories(updatedArticles);
+      await removeArticle(articleId);
+      setSavedArticleIds(prev => prev.filter(id => id !== articleId));
+      if (selectedStoryType === 'bookmarks') {
+        setStories(prev => prev.filter(story => story.id !== articleId));
+      }
     } catch (error) {
       console.error('Error removing article:', error);
     }
@@ -140,7 +158,8 @@ export const ScrollView: React.FC<ScrollViewProps> = ({
             item={item}
             onPressSave={() => onPressSave(item)} // Pass the correct item
             onPressComments={() => onPressComments(item)} 
-            onPressTrash={() => handlePressTrash(item.id)}// Fix: Wrap in callback
+            onPressTrash={() => handlePressTrash(item.id)}
+            savedArticles={savedArticleIds}
           />
         )}
         ListFooterComponent={loading ? <LoadingPlaceholder /> : null} // Render LoadingPlaceholder when loading

@@ -11,17 +11,20 @@ export interface Comment {
 }
 
 export interface StoryTypeModalProps {
-  item: number;  // This expects a story ID number
+  visible: boolean;
+  onClose: () => void;
+  item?: number;
   kids?: number[];
-  onClose?: () => void;
 }
 export interface ListItemProps {
   item: Article;  // Change from number to Article
   storyType: string;
   type?: "save" | "trash";
-  onPressSave?: () => void;
-  onPressTrash?: () => void;
+  onPressSave?: (item: Article) => void;
+  onPressTrash?: (articleId: number) => void;
   onPressComments?: () => void;
+  isSaved?: boolean;
+  savedArticles: number[];  // Add this line to track saved article IDs
 }
 
 export interface ScrollViewProps {
