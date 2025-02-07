@@ -1,11 +1,12 @@
 import { StatusBar } from "expo-status-bar";
-import { Platform, SafeAreaView, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent } from "react-native";
+import { Platform, SafeAreaView, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent, Modal } from "react-native";
 import React, { useState, useEffect } from "react";
 import { Text, View } from "@/components/Themed";
 import { getAllComments, getLocalTime } from "@/utils/lib";
 import RenderHTML from "react-native-render-html";
 import { useColorScheme } from "@/components/useColorScheme";
 import { StoryTypeModalProps, Comment } from "@/utils/interfaces";
+import { FontAwesome } from "@expo/vector-icons";
 
 const CommentItem = ({ comment, windowWidth, parentId = '' }: { 
   comment: Comment; 
@@ -95,9 +96,15 @@ const CommentItem = ({ comment, windowWidth, parentId = '' }: {
   );
 };
 
-export default function StoryTypeModal({ item, kids }: StoryTypeModalProps) {
+const params = {
+  ITEM_HEIGHT: 120, // Approximate height for comment items
+  PAGE_SIZE: 20,
+};
+
+const VISIBLE_ITEMS = Math.ceil(Dimensions.get('window').height / params.ITEM_HEIGHT * 2);
+
+export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTypeModalProps) {
   const [comments, setComments] = useState<Comment[]>([]);
-  const colorScheme = useColorScheme();
   const windowWidth = Dimensions.get('window').width;
 
   useEffect(() => {
@@ -117,22 +124,61 @@ export default function StoryTypeModal({ item, kids }: StoryTypeModalProps) {
     fetchComments();
   }, [kids]);
 
+  const getItemLayout = React.useCallback(
+    (_: any, index: number) => ({
+      length: params.ITEM_HEIGHT,
+      offset: params.ITEM_HEIGHT * index,
+      index,
+    }),
+    []
+  );
+
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-black">
-      <FlatList
-        className="flex-1 bg-white dark:bg-black"
-        data={comments}
-        keyExtractor={(item) => `comment-${item.id}-${item.time || Date.now()}`}
-        renderItem={({ item, index }) => (
-          <CommentItem 
-            key={`root-${item.id}-${index}`}
-            comment={item} 
-            windowWidth={windowWidth}
-            parentId={`root-${index}`}
-          />
-        )}
-      />
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="overFullScreen"
+      transparent={true}
+      onRequestClose={onClose}
+      className="m-0 flex-1 items-center justify-end w-full bg-white dark:bg-black h-60 bg-opacity-100"
+    >
+      <View className="bg-white dark:bg-black items-end">
+        <TouchableOpacity className="mt-5 p-10" onPress={onClose}>
+          <FontAwesome name="close" size={24} color={'red'} />
+        </TouchableOpacity>
+      </View>
+      {comments.length > 0 ? (
+        <FlatList
+          className="flex-1 bg-white dark:bg-black"
+          data={comments}
+          windowSize={5}
+          maxToRenderPerBatch={VISIBLE_ITEMS}
+          initialNumToRender={VISIBLE_ITEMS}
+          updateCellsBatchingPeriod={50}
+          removeClippedSubviews={true}
+          maintainVisibleContentPosition={{
+            minIndexForVisible: 0,
+            autoscrollToTopThreshold: 10,
+          }}
+          getItemLayout={getItemLayout}
+          keyExtractor={(item) => `comment-${item.id}-${item.time || Date.now()}`}
+          renderItem={({ item, index }) => (
+            <CommentItem 
+              key={`root-${item.id}-${index}`}
+              comment={item} 
+              windowWidth={windowWidth}
+              parentId={`root-${index}`}
+            />
+          )}
+        />
+      ) : (
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-lg text-zinc-600 dark:text-zinc-400">
+            No comments yet. Come back later!
+          </Text>
+        </View>
+      )}
       <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
-    </SafeAreaView>
+    </Modal>
   );
 }
