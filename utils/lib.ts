@@ -7,6 +7,8 @@ import { Comment } from "./interfaces";  // Use the interface from interfaces.ts
 const PAGE_SIZE = 20; // Number of stories per page
 const TIMEOUT_MS = 5000;
 const MAX_RETRIES = 3;
+const INITIAL_FETCH_LIMIT = 10;
+const commentCache = new Map<number, Comment>();
 
 // Remove the local Comment interface since we're importing it
 
@@ -110,29 +112,45 @@ async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Comme
   throw new Error('Max retries reached');
 }
 
-export async function getAllComments(kids: number[], depth = 0, maxDepth = 3): Promise<Comment[]> {
+// Modified getAllComments function with batching and caching
+export async function getAllComments(
+  kids: number[], 
+  depth = 0, 
+  maxDepth = 2,  // Reduced max depth
+  limit = INITIAL_FETCH_LIMIT
+): Promise<Comment[]> {
   if (!kids || !kids.length || depth >= maxDepth) return [];
   
-  const commentPromises = kids.map(async id => {
+  // Only fetch limited number of comments initially
+  const kidsToFetch = kids.slice(0, limit);
+  
+  const promises = kidsToFetch.map(async id => {
+    if (commentCache.has(id)) return commentCache.get(id);
+
     try {
-      const comment = await fetchWithRetry(`https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`);
+      const response = await fetch(
+        `https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`
+      );
+      const comment = await response.json();
       
-      // Recursively fetch replies if they exist
-      const replies = comment.kids ? await getAllComments(comment.kids, depth + 1, maxDepth) : [];
+      // Only fetch immediate replies for initial load
+      const replies = depth < maxDepth - 1 && comment.kids ? 
+        await getAllComments(comment.kids, depth + 1, maxDepth, 3) : // Only fetch 3 replies initially
+        [];
       
-      // Ensure the comment has all required fields
       const processedComment: Comment = {
         ...comment,
-        score: comment.score || 0,
         replies,
         depth,
+        score: comment.score || 0,
         id: comment.id,
         text: comment.text || '',
         by: comment.by || '',
         time: comment.time || 0,
-        kids: comment.kids || []
+        kids: comment.kids || [],
       };
       
+      commentCache.set(id, processedComment);
       return processedComment;
     } catch (error) {
       console.error(`Error fetching comment ${id}:`, error);
@@ -140,15 +158,23 @@ export async function getAllComments(kids: number[], depth = 0, maxDepth = 3): P
     }
   });
 
-  const comments = await Promise.all(commentPromises);
-  
-  // Filter out null values and ensure type safety
-  return comments.filter((comment): comment is Comment => 
-    comment !== null && 
-    typeof comment === 'object' &&
-    'id' in comment &&
-    Array.isArray(comment.replies)
-  );
+  const comments = await Promise.all(promises);
+  return comments.filter((c): c is Comment => c !== null);
+}
+
+// Add new function for loading more comments
+export async function loadMoreComments(
+  kids: number[],
+  offset: number,
+  limit: number
+): Promise<Comment[]> {
+  const nextBatch = kids.slice(offset, offset + limit);
+  return getAllComments(nextBatch, 0, 2, limit);
+}
+
+// Add cache cleanup function (call this periodically)
+export function clearCommentCache() {
+  commentCache.clear();
 }
 
 export async function storeData(value: any){

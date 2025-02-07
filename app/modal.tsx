@@ -1,14 +1,14 @@
 import { StatusBar } from "expo-status-bar";
-import { Platform, SafeAreaView, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent, Modal } from "react-native";
-import React, { useState, useEffect } from "react";
+import { Platform, SafeAreaView, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent, Modal, ActivityIndicator } from "react-native";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { Text, View } from "@/components/Themed";
-import { getAllComments, getLocalTime } from "@/utils/lib";
+import { getAllComments, getLocalTime, loadMoreComments } from "@/utils/lib";
 import RenderHTML from "react-native-render-html";
 import { useColorScheme } from "@/components/useColorScheme";
 import { StoryTypeModalProps, Comment } from "@/utils/interfaces";
 import { FontAwesome } from "@expo/vector-icons";
 
-const CommentItem = ({ comment, windowWidth, parentId = '' }: { 
+const CommentItem = memo(({ comment, windowWidth, parentId = '' }: { 
   comment: Comment; 
   windowWidth: number;
   parentId?: string;
@@ -94,44 +94,66 @@ const CommentItem = ({ comment, windowWidth, parentId = '' }: {
       )}
     </React.Fragment>
   );
-};
+});
 
-const params = {
-  ITEM_HEIGHT: 120, // Approximate height for comment items
-  PAGE_SIZE: 20,
-};
-
-const VISIBLE_ITEMS = Math.ceil(Dimensions.get('window').height / params.ITEM_HEIGHT * 2);
+const COMMENTS_PER_PAGE = 10;
 
 export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTypeModalProps) {
   const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadedCount, setLoadedCount] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const windowWidth = Dimensions.get('window').width;
 
   useEffect(() => {
-    const fetchComments = async () => {
-      if (kids && kids.length > 0) {
-        const data = await getAllComments(kids);
+    let isMounted = true;
 
-        // Add default score if missing
-        const commentsWithScore = data.map(comment => ({
-          ...comment,
-          score: comment.score || 0
-        }));
-        setComments(commentsWithScore);
+    const fetchInitialComments = async () => {
+      setIsLoading(true);
+      if (kids?.length) {
+        const initialComments = await getAllComments(kids, 0, 2, COMMENTS_PER_PAGE);
+        if (isMounted) {
+          setComments(initialComments);
+          setLoadedCount(initialComments.length);
+        }
       }
+      if (isMounted) setIsLoading(false);
     };
 
-    fetchComments();
+    setComments([]);
+    setLoadedCount(0);
+    fetchInitialComments();
+
+    return () => { isMounted = false };
   }, [kids]);
 
-  const getItemLayout = React.useCallback(
-    (_: any, index: number) => ({
-      length: params.ITEM_HEIGHT,
-      offset: params.ITEM_HEIGHT * index,
-      index,
-    }),
-    []
-  );
+  const loadMore = async () => {
+    if (isLoadingMore || !kids || loadedCount >= kids.length) return;
+    
+    setIsLoadingMore(true);
+    const newComments = await loadMoreComments(kids, loadedCount, COMMENTS_PER_PAGE);
+    setComments(prev => [...prev, ...newComments]);
+    setLoadedCount(prev => prev + newComments.length);
+    setIsLoadingMore(false);
+  };
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null;
+    return (
+      <View className="py-4">
+        <ActivityIndicator size="small" color="#0284c7" />
+      </View>
+    );
+  };
+
+  // Memoize CommentItem for better performance
+  const renderComment = useCallback(({ item: comment }: { item: Comment }) => (
+    <CommentItem 
+      comment={comment} 
+      windowWidth={windowWidth}
+      parentId={`root-${comment.id}`}
+    />
+  ), [windowWidth]);
 
   return (
     <Modal
@@ -147,29 +169,26 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
           <FontAwesome name="close" size={24} color={'red'} />
         </TouchableOpacity>
       </View>
-      {comments.length > 0 ? (
+      {isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#0284c7" />
+          <Text className="text-lg text-zinc-600 dark:text-zinc-400 mt-4">
+            Loading comments... ({loadedCount}/{kids?.length || 0})
+          </Text>
+        </View>
+      ) : comments.length > 0 ? (
         <FlatList
-          className="flex-1 bg-white dark:bg-black"
           data={comments}
-          windowSize={5}
-          maxToRenderPerBatch={VISIBLE_ITEMS}
-          initialNumToRender={VISIBLE_ITEMS}
-          updateCellsBatchingPeriod={50}
+          renderItem={renderComment}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
+          windowSize={3}
+          maxToRenderPerBatch={5}
+          updateCellsBatchingPeriod={75}
           removeClippedSubviews={true}
-          maintainVisibleContentPosition={{
-            minIndexForVisible: 0,
-            autoscrollToTopThreshold: 10,
-          }}
-          getItemLayout={getItemLayout}
-          keyExtractor={(item) => `comment-${item.id}-${item.time || Date.now()}`}
-          renderItem={({ item, index }) => (
-            <CommentItem 
-              key={`root-${item.id}-${index}`}
-              comment={item} 
-              windowWidth={windowWidth}
-              parentId={`root-${index}`}
-            />
-          )}
+          initialNumToRender={5}
+          keyExtractor={item => `comment-${item.id}`}
         />
       ) : (
         <View className="flex-1 items-center justify-center">
