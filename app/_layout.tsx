@@ -47,11 +47,40 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
+  const customDarkTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      background: '#18181b', // zinc-900
+      card: '#18181b',
+      border: '#27272a', // zinc-800
+    },
+  };
+
+  const customLightTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: '#ffffff',
+      card: '#ffffff',
+      border: '#e4e4e7', // zinc-200
+    },
+  };
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === 'dark' ? customDarkTheme : customLightTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen 
+          name="modal" 
+          options={{ 
+            presentation: 'modal',
+            headerStyle: {
+              backgroundColor: colorScheme === 'dark' ? '#18181b' : '#ffffff',
+            },
+            headerTintColor: colorScheme === 'dark' ? '#ffffff' : '#000000',
+          }} 
+        />
       </Stack>
     </ThemeProvider>
   );

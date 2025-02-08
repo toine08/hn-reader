@@ -4,7 +4,7 @@ import StoryTypeModal from "../modal";
 import { Article } from "@/utils/types";
 import { ScrollView } from "@/components/ScrollView";
 
-export default function BestStoriesScreen() {
+export default function TopStoriesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Article | null>(null);
 
@@ -16,7 +16,7 @@ export default function BestStoriesScreen() {
   return (
     <SafeAreaView className="flex-1 w-full bg-white dark:bg-zinc-900">
       <ScrollView 
-        story="beststories"
+        story="topstories"
         saveOrTrash="save"
         onItemSelect={handlePressComments}
       />

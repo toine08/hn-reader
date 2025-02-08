@@ -1,55 +1,100 @@
-import React from "react";
+import React, { memo } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import * as WebBrowser from "expo-web-browser";
-import { getLocalTime } from "@/utils/lib";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import * as WebBrowser from 'expo-web-browser';
+import { ListItemProps } from "@/utils/interfaces";
+import LinkPreview from "./LinkPreview";
+import { Article } from "@/utils/types";
 
-export default function ListItem({
-  type,
+const ListItem: React.FC<ListItemProps> = memo(({
   item,
+  type,
+  storyType,
   onPressSave,
   onPressTrash,
   onPressComments,
-}: {
-  type: keyof typeof FontAwesome.glyphMap;
-  item: any;
-  onPressSave?: () => void;
-  onPressTrash?: () => Promise<void>;
-  onPressComments: () => void;
-}) {
-  const handlePress = () => {
-    if (type === "trash" && onPressTrash) {
-      onPressTrash();
-    } else if (onPressSave) {
-      onPressSave();
+  savedArticles,
+}) => {
+  const isSaved = savedArticles.includes(item.id);
+
+  const handleToggleSave = () => {
+    if (isSaved) {
+      onPressTrash?.(item.id); // Removes bookmarked item
+    } else {
+      onPressSave?.(item);    // Saves new item
     }
   };
 
-  return (
-    <View className="flex-1 bg-neutral-900 m-2 mb-3 w-fit rounded-lg shadow-sm mix-blend-lighten shadow-blue-300">
-      <TouchableOpacity
-        className=" justify-between p-1 pb-4"
-        onPress={() => {
-          WebBrowser.openBrowserAsync(item.url);
-        }}
-      >
-        <Text className="text-base h-auto text-white">{item.title}</Text>
-        <TouchableOpacity onPress={onPressComments} className="flex-1 flex-row mt-2">
-          <Text className="text-base h-auto text-white mr-2">
-            {item.kids?.length || 0}
-          </Text>
-          <FontAwesome name="comments" size={24} color="white" />
-        </TouchableOpacity>
-      </TouchableOpacity>
-      <View className="p-2 justify-between flex-row items-center">
-        <Text className="text-base h-auto text-white">
-          {getLocalTime(item.time)}
-        </Text>
+  const handleArticlePress = async () => {
+    const options = {
+      readerMode: true
+    };
+    if (item.url) {
+      await WebBrowser.openBrowserAsync(item.url,options);
+    }
+  };
 
-        <TouchableOpacity onPress={handlePress}>
-          <FontAwesome name={type} size={24} color="white" />
+  if (!item) return null;
+
+  return (
+    <View className="border-b border-zinc-200 dark:border-zinc-800">
+      <View className="p-4">
+        {/* Title Section */}
+        <TouchableOpacity onPress={handleArticlePress}>
+          <View className="mb-3">
+            <Text 
+              className="text-base font-medium text-black dark:text-white"
+              numberOfLines={2}
+            >
+              {(item as Article).title}
+            </Text>
+          </View>
         </TouchableOpacity>
+        
+         {/* Buttons Section */}
+         <View className="flex-row gap-3 mb-3">
+          {storyType === "bookmarks" ? (
+            // Only Delete button
+            <TouchableOpacity
+              onPress={() => onPressTrash?.(item.id)}
+              className="bg-red-600 px-3 py-2 rounded-md"
+            >
+              <Text className="text-white text-sm">Delete</Text>
+            </TouchableOpacity>
+          ) : (
+            // Toggling Save/Delete
+            <TouchableOpacity
+              onPress={handleToggleSave}
+              className={`px-3 py-2 rounded-md ${
+                isSaved ? "bg-red-600" : "bg-orange-600"
+              }`}
+            >
+              <Text className="text-white text-sm">
+                {isSaved ? "Delete" : "Save"}
+              </Text>
+            </TouchableOpacity>
+          )}
+
+          {onPressComments && (
+            <TouchableOpacity 
+              onPress={onPressComments}
+              className="bg-zinc-200 dark:bg-zinc-800 px-3 py-2 rounded-md"
+            >
+              <Text className="text-black dark:text-white text-sm">Comments</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Link Preview Section */}
+        {item.url && (
+          <TouchableOpacity onPress={handleArticlePress}>
+            <View className="border-t pt-3">
+              <LinkPreview url={item.url} />
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
-  );
-}
+)
+})
+export default ListItem;
+

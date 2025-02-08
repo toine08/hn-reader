@@ -18,6 +18,10 @@ module.exports = {
           gray: {
             100: "#CDCDE0",
           },
+          orange:{
+            100:'#FF6600',
+          },
+
         },
       },
     },

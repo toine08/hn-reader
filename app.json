@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "hn-reader",
+    "name": "hackers-news-reader",
     "slug": "hn-reader",
-    "version": "1.0.0",
+    "version": "0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "hnreader.app",
@@ -16,13 +16,19 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.toto8.hackers-news-reader",
+      "buildNumber": "3",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#FF6600"
-      }
+      },
+      "package": "com.toto8.hackersnewsreader"
     },
     "web": {
       "bundler": "metro",
@@ -30,10 +36,26 @@
       "favicon": "./assets/images/favicon.ico"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-font",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "7762dfc8-fd9d-44b2-aa2c-4b4724092def"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7762dfc8-fd9d-44b2-aa2c-4b4724092def"
     }
   }
 }
