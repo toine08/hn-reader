@@ -259,6 +259,38 @@ export async function getStorySaved(): Promise<Article[]> {
   }
 }
 
+export async function getFilteredSavedStories(
+  sortOrder: 'newest' | 'oldest' = 'newest',
+  searchTerm: string = ''
+): Promise<Article[]> {
+  try {
+    // Get all saved articles
+    let savedArticles = await getStorySaved();
+    
+    // Apply search filter if search term provided
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      savedArticles = savedArticles.filter(article => 
+        article.title?.toLowerCase().includes(term)
+      );
+    }
+    
+    // Sort articles based on the specified order
+    savedArticles.sort((a, b) => {
+      if (sortOrder === 'newest') {
+        return (b.time || 0) - (a.time || 0); // Newest first
+      } else {
+        return (a.time || 0) - (b.time || 0); // Oldest first
+      }
+    });
+    
+    return savedArticles;
+  } catch (error) {
+    console.error('Error filtering saved articles:', error);
+    return [];
+  }
+}
+
 export async function removeArticle(articleId: number) {
   try {
     const savedArticlesJson = await AsyncStorage.getItem('savedArticles');
