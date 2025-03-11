@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "hackers-news-reader",
+    "name": "hackers new reader",
     "slug": "hn-reader",
-    "version": "0.1",
+    "version": "1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "hnreader.app",
