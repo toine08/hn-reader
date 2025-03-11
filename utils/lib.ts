@@ -308,3 +308,20 @@ export async function removeArticle(articleId: number) {
   }
 }
 
+// Add this function to your existing lib.ts file
+
+// Fetch a single item by ID
+export const fetchItem = async (id: number) => {
+  try {
+    const response = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch item ${id}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Error fetching item ${id}:`, error);
+    throw error;
+  }
+};
+

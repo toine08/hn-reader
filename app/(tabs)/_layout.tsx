@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import { Tabs } from "expo-router";
+import { Tabs, useRouter } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
 import { useClientOnlyValue } from "@/components/useClientOnlyValue";
@@ -14,6 +15,45 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkDefaultPage = async () => {
+      try {
+        const defaultPage = await AsyncStorage.getItem('defaultPage');
+        if (defaultPage) {
+          // Use a more type-safe approach to navigation
+          switch (defaultPage) {
+            case 'topStories':
+              router.replace({pathname: "/(tabs)/topStories"});
+              break;
+            case 'newStories':
+              router.replace({pathname: "/(tabs)/newStories"});
+              break;
+            case 'index':
+              router.replace({pathname: "/(tabs)"});
+              break;
+            case 'jobStories':
+              router.replace({pathname: "/(tabs)/jobStories"});
+              break;
+            case 'bookmarks':
+              router.replace({pathname: "/(tabs)/bookmarks"});
+              break;
+            case 'settings':
+              router.replace({pathname: "/(tabs)/settings"});
+              break;
+            default:
+              // Default to index if somehow an invalid value is stored
+              router.replace({pathname: "/(tabs)"});
+          }
+        }
+      } catch (error) {
+        console.error('Error loading default page:', error);
+      }
+    };
+    
+    checkDefaultPage();
+  }, []);
 
   return (
     <Tabs
@@ -77,7 +117,15 @@ export default function TabLayout() {
           ),
         }}
       />
-     
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="cog" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
