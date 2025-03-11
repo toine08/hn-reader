@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { LogBox } from 'react-native';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -19,6 +20,11 @@ export const unstable_settings = {
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+// Ignore specific warnings
+LogBox.ignoreLogs([
+  'Support for defaultProps will be removed from function components in a future major release.',
+]);
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -47,40 +53,18 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
-  const customDarkTheme = {
-    ...DarkTheme,
-    colors: {
-      ...DarkTheme.colors,
-      background: '#18181b', // zinc-900
-      card: '#18181b',
-      border: '#27272a', // zinc-800
-    },
-  };
-
-  const customLightTheme = {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      background: '#ffffff',
-      card: '#ffffff',
-      border: '#e4e4e7', // zinc-200
-    },
-  };
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? customDarkTheme : customLightTheme}>
-      <Stack>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Stack screenOptions={{
+        headerBackTitle: "Back",  // This sets the default back button text for all screens
+      }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="modal" 
-          options={{ 
-            presentation: 'modal',
-            headerStyle: {
-              backgroundColor: colorScheme === 'dark' ? '#18181b' : '#ffffff',
-            },
-            headerTintColor: colorScheme === 'dark' ? '#ffffff' : '#000000',
-          }} 
-        />
+        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="post/[id]" options={{ 
+          headerTitle: 'Post',
+          animation: 'slide_from_right',
+          headerBackTitle: "Home"  // This specifically sets the back button text for this screen
+        }} />
       </Stack>
     </ThemeProvider>
   );

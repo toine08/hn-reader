@@ -259,6 +259,38 @@ export async function getStorySaved(): Promise<Article[]> {
   }
 }
 
+export async function getFilteredSavedStories(
+  sortOrder: 'newest' | 'oldest' = 'newest',
+  searchTerm: string = ''
+): Promise<Article[]> {
+  try {
+    // Get all saved articles
+    let savedArticles = await getStorySaved();
+    
+    // Apply search filter if search term provided
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      savedArticles = savedArticles.filter(article => 
+        article.title?.toLowerCase().includes(term)
+      );
+    }
+    
+    // Sort articles based on the specified order
+    savedArticles.sort((a, b) => {
+      if (sortOrder === 'newest') {
+        return (b.time || 0) - (a.time || 0); // Newest first
+      } else {
+        return (a.time || 0) - (b.time || 0); // Oldest first
+      }
+    });
+    
+    return savedArticles;
+  } catch (error) {
+    console.error('Error filtering saved articles:', error);
+    return [];
+  }
+}
+
 export async function removeArticle(articleId: number) {
   try {
     const savedArticlesJson = await AsyncStorage.getItem('savedArticles');
@@ -275,4 +307,21 @@ export async function removeArticle(articleId: number) {
     return [];
   }
 }
+
+// Add this function to your existing lib.ts file
+
+// Fetch a single item by ID
+export const fetchItem = async (id: number) => {
+  try {
+    const response = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch item ${id}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Error fetching item ${id}:`, error);
+    throw error;
+  }
+};
 
