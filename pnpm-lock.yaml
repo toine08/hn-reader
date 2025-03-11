@@ -24,8 +24,8 @@ dependencies:
     specifier: ^0.1.0
     version: 0.1.0(react-native@0.76.7)(react@18.3.1)
   axios:
-    specifier: ^1.6.7
-    version: 1.7.9
+    specifier: ^1.8.2
+    version: 1.8.2
   expo:
     specifier: ~52.0.31
     version: 52.0.31(@babel/core@7.26.7)(@babel/preset-env@7.26.7)(react-native@0.76.7)(react@18.3.1)
@@ -3323,8 +3323,8 @@ packages:
       possible-typed-array-names: 1.0.0
     dev: false
 
-  /axios@1.7.9:
-    resolution: {integrity: sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==}
+  /axios@1.8.2:
+    resolution: {integrity: sha512-ls4GYBm5aig9vWx8AWDSGLpnpDQRtWAfrjU+EuytuODrFBkqesN2RkOQCBzrA1RQNHw1SmRMSDDDSwzNAYQ6Rg==}
     dependencies:
       follow-redirects: 1.15.9
       form-data: 4.0.1

@@ -19,7 +19,7 @@
     "@react-native-picker/picker": "2.9.0",
     "@react-navigation/native": "^7.0.14",
     "@sleiv/react-native-opengraph-parser": "^0.1.0",
-    "axios": "^1.6.7",
+    "axios": "^1.8.2",
     "expo": "~52.0.31",
     "expo-asset": "~11.0.3",
     "expo-font": "~13.0.3",
