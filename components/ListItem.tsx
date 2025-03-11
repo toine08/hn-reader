@@ -87,7 +87,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
         {/* Link Preview Section */}
         {item.url && (
           <TouchableOpacity onPress={handleArticlePress}>
-            <View className="border-t pt-3">
+            <View className="pt-2">
               <LinkPreview url={item.url} />
             </View>
           </TouchableOpacity>
