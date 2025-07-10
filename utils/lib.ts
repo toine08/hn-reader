@@ -15,7 +15,10 @@ const commentCache = new Map<number, Comment>();
 // Function to get a page of story IDs
 export async function getStoryIds(choice: string, page: number) {
   try {
-    const response = await fetch(`https://hacker-news.firebaseio.com/v0/${choice}.json?print=pretty`);
+    const url = `https://hacker-news.firebaseio.com/v0/${choice}.json?print=pretty`;
+    console.log('Fetching story IDs from:', url);
+    const response = await fetch(url);
+    console.log('Response status for story IDs:', response.status);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -59,9 +62,10 @@ const fetchWithRetries = async (url: string, retries = 3): Promise<Response> => 
 // Update the getStoryData function to use fetchWithRetries
 export async function getStoryData(id: number) {
   try {
-    const response = await fetchWithRetries(
-      `https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`
-    );
+    const url = `https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`;
+    console.log('Fetching story data from:', url);
+    const response = await fetchWithRetries(url);
+    console.log('Response status for story data:', response.status);
     return await response.json();
   } catch (error) {
     console.error('Error fetching story data:', error);
@@ -162,14 +166,58 @@ export async function getAllComments(
   return comments.filter((c): c is Comment => c !== null);
 }
 
-// Add new function for loading more comments
+// New function to fetch comments by a list of IDs
+export async function fetchCommentsByIds(ids: number[], depth: number): Promise<Comment[]> {
+  const promises = ids.map(async id => {
+    if (commentCache.has(id)) {
+      console.log(`Comment ${id} found in cache.`);
+      return commentCache.get(id);
+    }
+
+    try {
+      const url = `https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`;
+      console.log(`Fetching comment data for ID ${id} from: ${url}`);
+      const response = await fetch(url);
+      console.log(`Response status for comment ${id}: ${response.status}`);
+      if (!response.ok) {
+        console.error(`HTTP error fetching comment ${id}: status ${response.status} for URL: ${url}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const comment = await response.json();
+      
+      const processedComment: Comment = {
+        ...comment,
+        replies: [], // Initially no replies, load them on demand
+        depth,
+        score: comment.score || 0,
+        id: comment.id,
+        text: comment.text || '',
+        by: comment.by || '',
+        time: comment.time || 0,
+        kids: comment.kids || [],
+      };
+      
+      commentCache.set(id, processedComment);
+      return processedComment;
+    } catch (error) {
+      console.error(`Error fetching comment ${id} from ${url}:`, error);
+      return null;
+    }
+  });
+
+  const comments = await Promise.all(promises);
+  return comments.filter((c): c is Comment => c !== null);
+}
+
+// Modified loadMoreComments function
 export async function loadMoreComments(
   kids: number[],
   offset: number,
-  limit: number
+  limit: number,
+  depth: number
 ): Promise<Comment[]> {
-  const nextBatch = kids.slice(offset, offset + limit);
-  return getAllComments(nextBatch, 0, 2, limit);
+  const nextBatchIds = kids.slice(offset, offset + limit);
+  return fetchCommentsByIds(nextBatchIds, depth);
 }
 
 // Add cache cleanup function (call this periodically)

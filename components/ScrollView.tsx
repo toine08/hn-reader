@@ -1,5 +1,5 @@
-import React, { memo, useCallback, useState, useEffect } from "react";
-import { View, FlatList, Dimensions } from "react-native";
+import React, { memo, useCallback, useState, useEffect, useRef } from "react";
+import { View, FlatList, Dimensions, Animated } from "react-native";
 import ListItem from "@/components/ListItem";
 import { Article } from "@/utils/types";
 import { getStorySaved, removeArticle, saveArticle } from "@/utils/lib";
@@ -19,6 +19,8 @@ interface LocalScrollViewProps {
   saveOrTrash?: "save" | "trash";
   onItemSelect?: (item: Article) => void;
   filteredArticles?: Article[];
+  searchQuery?: string;
+  onScroll?: (event: any) => void; // Add onScroll prop
 }
 
 export const ScrollView: React.FC<LocalScrollViewProps> = ({
@@ -26,28 +28,29 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   saveOrTrash,
   onItemSelect,
   filteredArticles,
+  searchQuery,
+  onScroll,
 }) => {
-  const { stories, loading, refreshing, loadMoreStories, onRefresh } = useStories(story);
+  const { stories, loading, refreshing, loadMoreStories, onRefresh } = story !== 'bookmarks' ? useStories(story) : { stories: [], loading: false, refreshing: false, loadMoreStories: () => {}, onRefresh: () => {} };
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Article | null>(null);
   const [savedArticleIds, setSavedArticleIds] = useState<number[]>([]);
-  const [localStories, setLocalStories] = useState<Article[]>([]);
+  const [filteredLocalStories, setFilteredLocalStories] = useState<Article[]>([]);
 
   useEffect(() => {
-    if (story === 'bookmarks') {
-      const fetchSavedArticles = async () => {
-        try {
-          const articles = await getStorySaved();
-          setLocalStories(articles || []);
-        } catch (error) {
-          console.error('Error fetching saved articles:', error);
-        }
-      };
-      fetchSavedArticles();
+    const dataToFilter = story === 'bookmarks' ? filteredArticles || [] : stories;
+    if (searchQuery) {
+      const lowerCaseQuery = searchQuery.toLowerCase();
+      const filtered = dataToFilter.filter(
+        (article) =>
+          article.title?.toLowerCase().includes(lowerCaseQuery) ||
+          article.by?.toLowerCase().includes(lowerCaseQuery)
+      );
+      setFilteredLocalStories(filtered);
     } else {
-      setLocalStories(stories);
+      setFilteredLocalStories(dataToFilter);
     }
-  }, [story, stories, filteredArticles]);
+  }, [stories, filteredArticles, searchQuery, story]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -85,7 +88,8 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
       await removeArticle(articleId);
       setSavedArticleIds(prev => prev.filter(id => id !== articleId));
       if (story === 'bookmarks') {
-        setLocalStories(prev => prev.filter(s => s.id !== articleId));
+        // When an article is trashed from bookmarks, update the filteredLocalStories directly
+        setFilteredLocalStories(prev => prev.filter(s => s.id !== articleId));
       }
     } catch (error) {
       console.error('Error removing article:', error);
@@ -108,14 +112,14 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
 
   return (
     <View className="flex-1 w-full">
-      <FlatList
+      <Animated.FlatList
         className="bg-white dark:bg-black h-full w-fit"
         windowSize={5}
         maxToRenderPerBatch={VISIBLE_ITEMS}
         initialNumToRender={VISIBLE_ITEMS}
         updateCellsBatchingPeriod={50}
         removeClippedSubviews={true}
-        data={localStories}
+        data={filteredLocalStories}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <ListItem
@@ -124,20 +128,22 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
             item={item}
             onPressSave={() => onPressSave(item)}
             onPressComments={() => onPressComments(item)} 
-            onPressTrash={() => handlePressTrash(item.id)}
+            onPressTrash={() => onPressTrash(item.id)}
             savedArticles={savedArticleIds}
           />
         )}
         ListFooterComponent={loading ? <LoadingPlaceholder /> : null}
-        onEndReached={loadMoreStories}
+        onEndReached={story !== 'bookmarks' ? loadMoreStories : undefined}
         onEndReachedThreshold={0.2}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
+        refreshing={story !== 'bookmarks' && refreshing}
+        onRefresh={story !== 'bookmarks' ? onRefresh : undefined}
         maintainVisibleContentPosition={{
             minIndexForVisible: 0,
             autoscrollToTopThreshold: 10,
           }}
         getItemLayout={getItemLayout}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       />
     </View>
   );
