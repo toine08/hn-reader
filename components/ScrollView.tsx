@@ -1,23 +1,22 @@
-import React, { memo, useCallback, useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, FlatList, Dimensions } from "react-native";
+import React, { memo, useCallback, useState, useEffect } from "react";
+import { View, FlatList, Dimensions } from "react-native";
 import ListItem from "@/components/ListItem";
 import { Article } from "@/utils/types";
-import { ScrollViewProps as ImportedScrollViewProps } from "@/utils/interfaces";
-import { getStories, getStorySaved, removeArticle, saveArticle, storeData } from "@/utils/lib";
+import { getStorySaved, removeArticle, saveArticle } from "@/utils/lib";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import { useFocusEffect } from "expo-router";
+import { useStories } from "@/hooks/useStories";
 
 const params = {
-  initialNumber: 5,
-  ITEM_HEIGHT: 150, // Define ITEM_HEIGHT with an appropriate value
-  PAGE_SIZE: 20, // Approximate height of each item
+  ITEM_HEIGHT: 150,
+  PAGE_SIZE: 20,
 };
 
 const VISIBLE_ITEMS = Math.ceil(Dimensions.get('window').height / params.ITEM_HEIGHT * 2);
 
 interface LocalScrollViewProps {
   story: string;
-  saveOrTrash?: "save" | "trash"; // Change to union type to match ListItem expectations
+  saveOrTrash?: "save" | "trash";
   onItemSelect?: (item: Article) => void;
   filteredArticles?: Article[];
 }
@@ -28,53 +27,27 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   onItemSelect,
   filteredArticles,
 }) => {
-  const [selectedStoryType, setSelectedStoryType] = useState(story);
-  const [stories, setStories] = useState<Article[]>([]);
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
+  const { stories, loading, refreshing, loadMoreStories, onRefresh } = useStories(story);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Article | null>(null);
   const [savedArticleIds, setSavedArticleIds] = useState<number[]>([]);
+  const [localStories, setLocalStories] = useState<Article[]>([]);
 
-  if(selectedStoryType === 'bookmarks'){
-   useFocusEffect(
-       React.useCallback(() => {
-         const fetchSavedArticles = async () => {
-           try {
-             const articles = await getStorySaved();
-             setStories(articles || []);
-           } catch (error) {
-             console.error('Error fetching saved articles:', error);
-           }
-         };
-   
-         fetchSavedArticles();
-       }, [])
-     ); 
-  }else{
   useEffect(() => {
-    const loadStories = async () => {
-      setLoading(true);
-      try {
-        const newStories = await getStories(selectedStoryType, page);
-        // Filter out any null or undefined stories
-        const validStories = newStories.filter(
-          (story): story is Article =>
-            story != null && typeof story.id === "number"
-        );
-        setStories((oldStories) => [...oldStories, ...validStories]);
-      } catch (error) {
-        console.error("Error loading stories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStories();
-  }, [selectedStoryType, page]);
-}
+    if (story === 'bookmarks') {
+      const fetchSavedArticles = async () => {
+        try {
+          const articles = await getStorySaved();
+          setLocalStories(articles || []);
+        } catch (error) {
+          console.error('Error fetching saved articles:', error);
+        }
+      };
+      fetchSavedArticles();
+    } else {
+      setLocalStories(stories);
+    }
+  }, [story, stories, filteredArticles]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -90,58 +63,11 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
     }, [])
   );
 
-  useEffect(() => {
-    if (story === "bookmarks" && filteredArticles) {
-      // Use filtered articles when provided (for bookmarks page)
-      setStories(filteredArticles);
-      setLoading(false);
-    } else {
-      // Original fetching logic for non-bookmark pages
-      const fetchData = async () => {
-        setLoading(true);
-        try {
-          const newStories = await getStories(selectedStoryType, page);
-          // Filter out any null or undefined stories
-          const validStories = newStories.filter(
-            (story): story is Article =>
-              story != null && typeof story.id === "number"
-          );
-          setStories((oldStories) => [...oldStories, ...validStories]);
-        } catch (error) {
-          console.error("Error loading stories:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchData();
-    }
-  }, [page, story, filteredArticles]); // Add filteredArticles as dependency
-
-  const loadMoreStories = () => {
-    setPage((oldPage) => oldPage + 1);
-  };
-
-  const handleRefresh = async () => {
-    if (selectedStoryType === 'bookmarks') {
-      setRefreshing(false);
-      return;
-    }
-    
-    setRefreshing(true);
-    try {
-      const articles = await getStories(selectedStoryType, 1);
-      setStories(articles || []);
-    } catch (error) {
-      console.error("Error refreshing saved articles:", error);
-    }
-    setRefreshing(false);
-  };
-
   const handlePressComments = (item: Article) => {
     setSelectedItem(item);
     setModalVisible(true);
     if (onItemSelect) {
-      onItemSelect(item); // Call the callback with selected item
+      onItemSelect(item);
     }
   };
 
@@ -158,8 +84,8 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
     try {
       await removeArticle(articleId);
       setSavedArticleIds(prev => prev.filter(id => id !== articleId));
-      if (selectedStoryType === 'bookmarks') {
-        setStories(prev => prev.filter(story => story.id !== articleId));
+      if (story === 'bookmarks') {
+        setLocalStories(prev => prev.filter(s => s.id !== articleId));
       }
     } catch (error) {
       console.error('Error removing article:', error);
@@ -189,12 +115,12 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
         initialNumToRender={VISIBLE_ITEMS}
         updateCellsBatchingPeriod={50}
         removeClippedSubviews={true}
-        data={stories.slice(0, (page + 1) * params.PAGE_SIZE)}
-        keyExtractor={(item) => item.id.toString()} // Ensure unique keys
+        data={localStories}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <ListItem
-            type={saveOrTrash} // This now matches the expected "save" | "trash" | undefined
-            storyType={selectedStoryType}
+            type={saveOrTrash}
+            storyType={story}
             item={item}
             onPressSave={() => onPressSave(item)}
             onPressComments={() => onPressComments(item)} 
@@ -202,11 +128,11 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
             savedArticles={savedArticleIds}
           />
         )}
-        ListFooterComponent={loading ? <LoadingPlaceholder /> : null} // Render LoadingPlaceholder when loading
+        ListFooterComponent={loading ? <LoadingPlaceholder /> : null}
         onEndReached={loadMoreStories}
         onEndReachedThreshold={0.2}
-        refreshing={selectedStoryType !== 'bookmarks' && refreshing}
-        onRefresh={selectedStoryType !== 'bookmarks' ? handleRefresh : undefined}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
         maintainVisibleContentPosition={{
             minIndexForVisible: 0,
             autoscrollToTopThreshold: 10,
