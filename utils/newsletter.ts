@@ -165,7 +165,7 @@ export class NewsletterAPI {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          email_address: email,
           notes: name ? `Name: ${name}` : '',
           tags: ['hn-reader-app'], // Tag to identify subscribers from your app
         }),
@@ -177,9 +177,12 @@ export class NewsletterAPI {
       }
 
       // Check if user is already subscribed (Buttondown returns 400 for duplicates)
-      if (response.status === 400) {
+      if (response.status === 400 || response.status === 422) {
         const errorData = await response.json();
-        if (errorData.email && errorData.email.includes('already subscribed')) {
+        if (errorData.detail && (
+          errorData.detail.includes('already subscribed') ||
+          errorData.detail.includes('already exists')
+        )) {
           return true; // Treat as success if already subscribed
         }
       }
