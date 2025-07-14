@@ -22,6 +22,7 @@
     "axios": "^1.6.7",
     "expo": "~52.0.31",
     "expo-asset": "~11.0.3",
+    "expo-constants": "^17.1.7",
     "expo-font": "~13.0.3",
     "expo-linking": "~7.0.5",
     "expo-router": "~4.0.17",

@@ -1,6 +1,14 @@
 // Newsletter service configuration
 // Choose one of the following services to integrate with your newsletter
 
+import Constants from 'expo-constants';
+
+// Helper function to get environment variables in Expo
+const getEnvVar = (key: string): string | undefined => {
+  // For Expo with EXPO_PUBLIC_ prefix, variables should be available in process.env
+  return process.env[key];
+};
+
 export interface NewsletterConfig {
   service: 'mailchimp' | 'convertkit' | 'buttondown' | 'substack' | 'custom';
   apiKey?: string;
@@ -13,31 +21,31 @@ export const newsletterConfigs: Record<string, NewsletterConfig> = {
   // Mailchimp configuration
   mailchimp: {
     service: 'mailchimp',
-    apiKey: process.env.EXPO_PUBLIC_MAILCHIMP_API_KEY,
-    audienceId: process.env.EXPO_PUBLIC_MAILCHIMP_AUDIENCE_ID,
+    apiKey: getEnvVar('EXPO_PUBLIC_MAILCHIMP_API_KEY'),
+    audienceId: getEnvVar('EXPO_PUBLIC_MAILCHIMP_AUDIENCE_ID'),
     baseUrl: 'https://us1.api.mailchimp.com/3.0' // Replace 'us1' with your datacenter
   },
 
   // ConvertKit configuration  
   convertkit: {
     service: 'convertkit',
-    apiKey: process.env.EXPO_PUBLIC_CONVERTKIT_API_KEY,
-    audienceId: process.env.EXPO_PUBLIC_CONVERTKIT_FORM_ID,
+    apiKey: getEnvVar('EXPO_PUBLIC_CONVERTKIT_API_KEY'),
+    audienceId: getEnvVar('EXPO_PUBLIC_CONVERTKIT_FORM_ID'),
     baseUrl: 'https://api.convertkit.com/v3'
   },
 
   // Buttondown configuration
   buttondown: {
     service: 'buttondown',
-    apiKey: process.env.EXPO_PUBLIC_BUTTONDOWN_API_KEY,
+    apiKey: getEnvVar('EXPO_PUBLIC_BUTTONDOWN_API_KEY'),
     baseUrl: 'https://api.buttondown.email/v1'
   },
 
   // Custom backend service
   custom: {
     service: 'custom',
-    apiKey: process.env.EXPO_PUBLIC_NEWSLETTER_API_KEY,
-    baseUrl: process.env.EXPO_PUBLIC_NEWSLETTER_API_URL
+    apiKey: getEnvVar('EXPO_PUBLIC_NEWSLETTER_API_KEY'),
+    baseUrl: getEnvVar('EXPO_PUBLIC_NEWSLETTER_API_URL')
   }
 };
 
@@ -54,6 +62,11 @@ export class NewsletterAPI {
 
   async subscribe(email: string, name?: string): Promise<boolean> {
     try {
+      // Debug logging
+      console.log('Newsletter service:', this.config.service);
+      console.log('API Key available:', !!this.config.apiKey);
+      console.log('API Key length:', this.config.apiKey?.length);
+      
       switch (this.config.service) {
         case 'mailchimp':
           return await this.subscribeMailchimp(email, name);
