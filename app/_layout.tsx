@@ -100,26 +100,28 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{
-        headerBackTitle: "Back",  // This sets the default back button text for all screens
-      }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="post/[id]" options={{ 
-          headerTitle: 'Post',
-          animation: 'slide_from_right',
-          headerBackTitle: "Home"  // This specifically sets the back button text for this screen
-        }} />
-      </Stack>
-      
-      {/* First-time newsletter modal */}
-      {hasCheckedFirstTime && (
-        <FirstTimeNewsletterModal
-          visible={showNewsletterModal}
-          onAccept={handleNewsletterAccept}
-          onDecline={handleNewsletterDecline}
-        />
-      )}
+      <>
+        <Stack screenOptions={{
+          headerBackTitle: "Back",  // This sets the default back button text for all screens
+        }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="post/[id]" options={{ 
+            headerTitle: 'Post',
+            animation: 'slide_from_right',
+            headerBackTitle: "Home"  // This specifically sets the back button text for this screen
+          }} />
+        </Stack>
+        
+        {/* First-time newsletter modal */}
+        {hasCheckedFirstTime && (
+          <FirstTimeNewsletterModal
+            visible={showNewsletterModal}
+            onAccept={handleNewsletterAccept}
+            onDecline={handleNewsletterDecline}
+          />
+        )}
+      </>
     </ThemeProvider>
   );
 }

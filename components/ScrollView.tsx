@@ -17,7 +17,7 @@ const VISIBLE_ITEMS = Math.ceil(Dimensions.get('window').height / params.ITEM_HE
 
 interface LocalScrollViewProps {
   story: string;
-  saveOrTrash?: "save" | "trash"; // Change to union type to match ListItem expectations
+  saveOrTrash?: "save" | "trash";
   onItemSelect?: (item: Article) => void;
   filteredArticles?: Article[];
 }
@@ -27,7 +27,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   saveOrTrash,
   onItemSelect,
   filteredArticles,
-}) => {
+}: LocalScrollViewProps) => {
   const [selectedStoryType, setSelectedStoryType] = useState(story);
   const [stories, setStories] = useState<Article[]>([]);
   const [page, setPage] = useState(1);
@@ -64,7 +64,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
           (story): story is Article =>
             story != null && typeof story.id === "number"
         );
-        setStories((oldStories) => [...oldStories, ...validStories]);
+        setStories((oldStories: Article[]) => [...oldStories, ...validStories]);
       } catch (error) {
         console.error("Error loading stories:", error);
       } finally {
@@ -106,7 +106,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
             (story): story is Article =>
               story != null && typeof story.id === "number"
           );
-          setStories((oldStories) => [...oldStories, ...validStories]);
+          setStories((oldStories: Article[]) => [...oldStories, ...validStories]);
         } catch (error) {
           console.error("Error loading stories:", error);
         } finally {
@@ -118,7 +118,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   }, [page, story, filteredArticles]); // Add filteredArticles as dependency
 
   const loadMoreStories = () => {
-    setPage((oldPage) => oldPage + 1);
+    setPage((oldPage: number) => oldPage + 1);
   };
 
   const handleRefresh = async () => {
@@ -148,7 +148,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   const onPressSave = async (item: Article) => {
     try {
       await saveArticle(item);
-      setSavedArticleIds(prev => [...prev, item.id]);
+      setSavedArticleIds((prev: number[]) => [...prev, item.id]);
     } catch (error) {
       console.error("Error saving article:", error);
     }
@@ -157,9 +157,9 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   const handlePressTrash = async (articleId: number) => {
     try {
       await removeArticle(articleId);
-      setSavedArticleIds(prev => prev.filter(id => id !== articleId));
+      setSavedArticleIds((prev: number[]) => prev.filter((id: number) => id !== articleId));
       if (selectedStoryType === 'bookmarks') {
-        setStories(prev => prev.filter(story => story.id !== articleId));
+        setStories((prev: Article[]) => prev.filter((story: Article) => story.id !== articleId));
       }
     } catch (error) {
       console.error('Error removing article:', error);
@@ -172,7 +172,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   ); // Add item as a parameter
 
   const getItemLayout = useCallback(
-    (_: any, index: number) => ({
+    (_: ArrayLike<Article> | null | undefined, index: number) => ({
       length: params.ITEM_HEIGHT,
       offset: params.ITEM_HEIGHT * index,
       index,
@@ -190,8 +190,8 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
         updateCellsBatchingPeriod={50}
         removeClippedSubviews={true}
         data={stories.slice(0, (page + 1) * params.PAGE_SIZE)}
-        keyExtractor={(item) => item.id.toString()} // Ensure unique keys
-        renderItem={({ item }) => (
+        keyExtractor={(item: Article) => item.id.toString()}
+        renderItem={({ item }: { item: Article }) => (
           <ListItem
             type={saveOrTrash} // This now matches the expected "save" | "trash" | undefined
             storyType={selectedStoryType}

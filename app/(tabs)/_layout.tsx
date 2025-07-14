@@ -76,7 +76,7 @@ export default function TabLayout() {
         name="topStories"
         options={{
           title: "Trending",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <TabBarIcon name="fire-alt" color={color} />
           ),
         }}
@@ -85,7 +85,7 @@ export default function TabLayout() {
         name="newStories"
         options={{
           title: "Latest",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <TabBarIcon name="clock" color={color} />
           ),
         }}
@@ -94,7 +94,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Best",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <TabBarIcon name="star" color={color} />
           ),
         }}
@@ -103,7 +103,7 @@ export default function TabLayout() {
         name="jobStories"
         options={{
           title: "Job board",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <TabBarIcon name="briefcase" color={color} />
           ),
         }}
@@ -112,7 +112,7 @@ export default function TabLayout() {
         name="bookmarks"
         options={{
           title: "Bookmarks",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <TabBarIcon name="bookmark" color={color} />
           ),
         }}
@@ -121,7 +121,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <TabBarIcon name="cog" color={color} />
           ),
         }}
