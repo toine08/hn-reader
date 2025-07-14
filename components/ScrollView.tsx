@@ -19,6 +19,7 @@ interface LocalScrollViewProps {
   saveOrTrash?: "save" | "trash";
   onItemSelect?: (item: Article) => void;
   filteredArticles?: Article[];
+  onArticleDeleted?: () => void; // Add callback for when article is deleted
 }
 
 export const ScrollView: React.FC<LocalScrollViewProps> = ({
@@ -26,6 +27,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   saveOrTrash,
   onItemSelect,
   filteredArticles,
+  onArticleDeleted, // Add the callback parameter
 }: LocalScrollViewProps) => {
   const [stories, setStories] = useState<Article[]>([]);
   const [page, setPage] = useState(1);
@@ -86,7 +88,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
     };
 
     loadStories();
-  }, [story, page, filteredArticles]);
+  }, [story, page, filteredArticles]); // Keep filteredArticles as dependency
 
   const loadMoreStories = useCallback(() => {
     if (story !== 'bookmarks' && !loading) {
@@ -123,11 +125,13 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
       setSavedArticleIds((prev: number[]) => prev.filter((id: number) => id !== articleId));
       if (story === 'bookmarks') {
         setStories((prev: Article[]) => prev.filter((story: Article) => story.id !== articleId));
+        // Call the callback to notify parent component about deletion
+        onArticleDeleted?.();
       }
     } catch (error) {
       console.error('Error removing article:', error);
     }
-  }, [story]);
+  }, [story, onArticleDeleted]);
 
   const onPressComments = useCallback(
     (item: Article) => onItemSelect?.(item),

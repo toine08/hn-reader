@@ -14,6 +14,7 @@ export default function Bookmarks() {
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to force re-render
 
   // Debounce search term to avoid excessive filtering
   useEffect(() => {
@@ -33,7 +34,7 @@ export default function Bookmarks() {
       setIsSearching(false);
     };
     loadFilteredArticles();
-  }, [debouncedSearchTerm, sortOrder]);
+  }, [debouncedSearchTerm, sortOrder, refreshKey]); // Add refreshKey as dependency
 
   const handlePressComments = (item: Article) => {
     setSelectedItem(item);
@@ -46,6 +47,11 @@ export default function Bookmarks() {
 
   const clearSearch = () => {
     setSearchTerm('');
+  };
+
+  // Add callback to handle when an article is deleted
+  const handleArticleDeleted = () => {
+    setRefreshKey(prev => prev + 1); // Force refresh of filtered articles
   };
 
   return (
@@ -120,6 +126,7 @@ export default function Bookmarks() {
           saveOrTrash="trash"
           onItemSelect={handlePressComments}
           filteredArticles={filteredArticles}
+          onArticleDeleted={handleArticleDeleted}
         />
       )}
       
