@@ -79,3 +79,12 @@ yarn-error.*
 *.tsbuildinfo
 
 # @end expo-cli
+
+# Newsletter - Business sensitive information
+newsletter/
+.env
+
+# Additional environment files
+.env.local
+.env.production
+.env.development
