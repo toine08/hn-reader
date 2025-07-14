@@ -1,6 +1,6 @@
 # Privacy Policy for Hacker News Reader
 
-*Last updated: February 15, 2025*
+*Last updated: July 14, 2025*
 
 ## Overview
 
@@ -36,7 +36,7 @@ Hacker News Reader is committed to protecting your privacy. This privacy policy 
 
 ## Third-Party Services
 - The app opens links in an in-app browser
-- Newsletter subscriptions are processed by third-party newsletter services (ConvertKit, Mailchimp, etc.)
+- Newsletter subscriptions are processed by third-party newsletter services (Buttondown)
 - Newsletter service providers have their own privacy policies
 - We have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party sites or services you access through links
 
@@ -49,8 +49,8 @@ We may update our Privacy Policy from time to time. We will notify you of any ch
 
 ## Contact Us
 If you have any questions about this Privacy Policy, please contact us:
-- Email: [Your Contact Email]
-- Twitter: [Your Twitter Handle]
+- Email: toto8@duck.com
+- Twitter: @togido_
 
 ---
 
