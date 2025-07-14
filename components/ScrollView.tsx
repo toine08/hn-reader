@@ -1,16 +1,15 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, FlatList, Dimensions } from "react-native";
+import { View, FlatList, Dimensions } from "react-native";
 import ListItem from "@/components/ListItem";
 import { Article } from "@/utils/types";
-import { ScrollViewProps as ImportedScrollViewProps } from "@/utils/interfaces";
-import { getStories, getStorySaved, removeArticle, saveArticle, storeData } from "@/utils/lib";
+import { getStories, getStorySaved, removeArticle, saveArticle } from "@/utils/lib";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import { useFocusEffect } from "expo-router";
 
 const params = {
   initialNumber: 5,
-  ITEM_HEIGHT: 150, // Define ITEM_HEIGHT with an appropriate value
-  PAGE_SIZE: 20, // Approximate height of each item
+  ITEM_HEIGHT: 150,
+  PAGE_SIZE: 20,
 };
 
 const VISIBLE_ITEMS = Math.ceil(Dimensions.get('window').height / params.ITEM_HEIGHT * 2);
@@ -28,54 +27,13 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   onItemSelect,
   filteredArticles,
 }: LocalScrollViewProps) => {
-  const [selectedStoryType, setSelectedStoryType] = useState(story);
   const [stories, setStories] = useState<Article[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<Article | null>(null);
   const [savedArticleIds, setSavedArticleIds] = useState<number[]>([]);
 
-  if(selectedStoryType === 'bookmarks'){
-   useFocusEffect(
-       React.useCallback(() => {
-         const fetchSavedArticles = async () => {
-           try {
-             const articles = await getStorySaved();
-             setStories(articles || []);
-           } catch (error) {
-             console.error('Error fetching saved articles:', error);
-           }
-         };
-   
-         fetchSavedArticles();
-       }, [])
-     ); 
-  }else{
-  useEffect(() => {
-    const loadStories = async () => {
-      setLoading(true);
-      try {
-        const newStories = await getStories(selectedStoryType, page);
-        // Filter out any null or undefined stories
-        const validStories = newStories.filter(
-          (story): story is Article =>
-            story != null && typeof story.id === "number"
-        );
-        setStories((oldStories: Article[]) => [...oldStories, ...validStories]);
-      } catch (error) {
-        console.error("Error loading stories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadStories();
-  }, [selectedStoryType, page]);
-}
-
+  // Load saved article IDs
   useFocusEffect(
     React.useCallback(() => {
       const loadSavedArticleIds = async () => {
@@ -90,86 +48,91 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
     }, [])
   );
 
+  // Load stories based on story type
   useEffect(() => {
-    if (story === "bookmarks" && filteredArticles) {
-      // Use filtered articles when provided (for bookmarks page)
-      setStories(filteredArticles);
-      setLoading(false);
-    } else {
-      // Original fetching logic for non-bookmark pages
-      const fetchData = async () => {
-        setLoading(true);
-        try {
-          const newStories = await getStories(selectedStoryType, page);
-          // Filter out any null or undefined stories
-          const validStories = newStories.filter(
-            (story): story is Article =>
-              story != null && typeof story.id === "number"
-          );
-          setStories((oldStories: Article[]) => [...oldStories, ...validStories]);
-        } catch (error) {
-          console.error("Error loading stories:", error);
-        } finally {
-          setLoading(false);
+    const loadStories = async () => {
+      if (story === "bookmarks") {
+        if (filteredArticles) {
+          setStories(filteredArticles);
+        } else {
+          try {
+            const articles = await getStorySaved();
+            setStories(articles || []);
+          } catch (error) {
+            console.error('Error fetching saved articles:', error);
+          }
         }
-      };
-      fetchData();
-    }
-  }, [page, story, filteredArticles]); // Add filteredArticles as dependency
+        return;
+      }
 
-  const loadMoreStories = () => {
-    setPage((oldPage: number) => oldPage + 1);
-  };
+      setLoading(true);
+      try {
+        const newStories = await getStories(story, page);
+        const validStories = newStories.filter(
+          (story): story is Article =>
+            story != null && typeof story.id === "number"
+        );
+        
+        if (page === 1) {
+          setStories(validStories);
+        } else {
+          setStories((oldStories: Article[]) => [...oldStories, ...validStories]);
+        }
+      } catch (error) {
+        console.error("Error loading stories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleRefresh = async () => {
-    if (selectedStoryType === 'bookmarks') {
-      setRefreshing(false);
-      return;
+    loadStories();
+  }, [story, page, filteredArticles]);
+
+  const loadMoreStories = useCallback(() => {
+    if (story !== 'bookmarks' && !loading) {
+      setPage((oldPage: number) => oldPage + 1);
     }
+  }, [story, loading]);
+
+  const handleRefresh = useCallback(async () => {
+    if (story === 'bookmarks') return;
     
     setRefreshing(true);
+    setPage(1);
     try {
-      const articles = await getStories(selectedStoryType, 1);
+      const articles = await getStories(story, 1);
       setStories(articles || []);
     } catch (error) {
-      console.error("Error refreshing saved articles:", error);
+      console.error("Error refreshing stories:", error);
     }
     setRefreshing(false);
-  };
+  }, [story]);
 
-  const handlePressComments = (item: Article) => {
-    setSelectedItem(item);
-    setModalVisible(true);
-    if (onItemSelect) {
-      onItemSelect(item); // Call the callback with selected item
-    }
-  };
-
-  const onPressSave = async (item: Article) => {
+  const onPressSave = useCallback(async (item: Article) => {
     try {
       await saveArticle(item);
       setSavedArticleIds((prev: number[]) => [...prev, item.id]);
     } catch (error) {
       console.error("Error saving article:", error);
     }
-  };
+  }, []);
 
-  const handlePressTrash = async (articleId: number) => {
+  const handlePressTrash = useCallback(async (articleId: number) => {
     try {
       await removeArticle(articleId);
       setSavedArticleIds((prev: number[]) => prev.filter((id: number) => id !== articleId));
-      if (selectedStoryType === 'bookmarks') {
+      if (story === 'bookmarks') {
         setStories((prev: Article[]) => prev.filter((story: Article) => story.id !== articleId));
       }
     } catch (error) {
       console.error('Error removing article:', error);
     }
-  };
+  }, [story]);
 
   const onPressComments = useCallback(
-    (item: Article) => handlePressComments(item),
-    []
-  ); // Add item as a parameter
+    (item: Article) => onItemSelect?.(item),
+    [onItemSelect]
+  );
 
   const getItemLayout = useCallback(
     (_: ArrayLike<Article> | null | undefined, index: number) => ({
@@ -180,6 +143,18 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
     []
   );
 
+  const renderItem = useCallback(({ item }: { item: Article }) => (
+    <ListItem
+      type={saveOrTrash}
+      storyType={story}
+      item={item}
+      onPressSave={() => onPressSave(item)}
+      onPressComments={() => onPressComments(item)} 
+      onPressTrash={() => handlePressTrash(item.id)}
+      savedArticles={savedArticleIds}
+    />
+  ), [saveOrTrash, story, onPressSave, onPressComments, handlePressTrash, savedArticleIds]);
+
   return (
     <View className="flex-1 w-full">
       <FlatList
@@ -189,28 +164,18 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
         initialNumToRender={VISIBLE_ITEMS}
         updateCellsBatchingPeriod={50}
         removeClippedSubviews={true}
-        data={stories.slice(0, (page + 1) * params.PAGE_SIZE)}
+        data={stories}
         keyExtractor={(item: Article) => item.id.toString()}
-        renderItem={({ item }: { item: Article }) => (
-          <ListItem
-            type={saveOrTrash} // This now matches the expected "save" | "trash" | undefined
-            storyType={selectedStoryType}
-            item={item}
-            onPressSave={() => onPressSave(item)}
-            onPressComments={() => onPressComments(item)} 
-            onPressTrash={() => handlePressTrash(item.id)}
-            savedArticles={savedArticleIds}
-          />
-        )}
-        ListFooterComponent={loading ? <LoadingPlaceholder /> : null} // Render LoadingPlaceholder when loading
+        renderItem={renderItem}
+        ListFooterComponent={loading ? <LoadingPlaceholder /> : null}
         onEndReached={loadMoreStories}
         onEndReachedThreshold={0.2}
-        refreshing={selectedStoryType !== 'bookmarks' && refreshing}
-        onRefresh={selectedStoryType !== 'bookmarks' ? handleRefresh : undefined}
+        refreshing={story !== 'bookmarks' && refreshing}
+        onRefresh={story !== 'bookmarks' ? handleRefresh : undefined}
         maintainVisibleContentPosition={{
-            minIndexForVisible: 0,
-            autoscrollToTopThreshold: 10,
-          }}
+          minIndexForVisible: 0,
+          autoscrollToTopThreshold: 10,
+        }}
         getItemLayout={getItemLayout}
       />
     </View>

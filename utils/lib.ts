@@ -1,18 +1,14 @@
-import { useState, useEffect } from "react";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Article } from "./types";
-import { Comment } from "./interfaces";  // Use the interface from interfaces.ts
+import { Comment } from "./interfaces";
 
-
-const PAGE_SIZE = 20; // Number of stories per page
+const PAGE_SIZE = 20;
 const TIMEOUT_MS = 5000;
 const MAX_RETRIES = 3;
 const INITIAL_FETCH_LIMIT = 10;
 const commentCache = new Map<number, Comment>();
 
-// Remove the local Comment interface since we're importing it
-
-// Function to get a page of story IDs
+// Fetch story IDs with pagination
 export async function getStoryIds(choice: string, page: number) {
   try {
     const response = await fetch(`https://hacker-news.firebaseio.com/v0/${choice}.json?print=pretty`);
@@ -21,20 +17,19 @@ export async function getStoryIds(choice: string, page: number) {
     }
     const allStoryIds = await response.json();
 
-    // Calculate start and end indices for the slice
     const start = (page - 1) * PAGE_SIZE;
     const end = start + PAGE_SIZE;
 
-    // Return a slice of the story IDs
     return allStoryIds.slice(start, end);
   } catch (error) {
     console.error('Error fetching story IDs:', error);
-    throw error; // Re-throw the error after logging it
+    throw error;
   }
 }
 
+// Fetch with retry logic
 const fetchWithRetries = async (url: string, retries = 3): Promise<Response> => {
-  const timeout = 5000; // 5 seconds timeout
+  const timeout = 5000;
   
   for (let i = 0; i < retries; i++) {
     try {
@@ -49,14 +44,13 @@ const fetchWithRetries = async (url: string, retries = 3): Promise<Response> => 
       
     } catch (error) {
       if (i === retries - 1) throw error;
-      // Exponential backoff
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
     }
   }
   throw new Error('Max retries reached');
 };
 
-// Update the getStoryData function to use fetchWithRetries
+// Get single story data
 export async function getStoryData(id: number) {
   try {
     const response = await fetchWithRetries(
@@ -65,17 +59,16 @@ export async function getStoryData(id: number) {
     return await response.json();
   } catch (error) {
     console.error('Error fetching story data:', error);
-    return null; // Return null instead of throwing
+    return null;
   }
 }
 
-// Function to get a page of stories
+// Get paginated stories
 export async function getStories(choice: string, page: number) {
   try {
     const storyIds = await getStoryIds(choice, page);
     const storyPromises = storyIds.map(getStoryData);
     const stories = await Promise.all(storyPromises);
-    // Filter out any null or invalid stories
     return stories.filter(story => 
       story && 
       typeof story === 'object' && 
@@ -83,10 +76,11 @@ export async function getStories(choice: string, page: number) {
     );
   } catch (error) {
     console.error('Error fetching stories:', error);
-    return []; // Return empty array instead of throwing
+    return [];
   }
 }
 
+// Fetch with timeout
 async function fetchWithTimeout(url: string, timeout: number): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
@@ -99,29 +93,15 @@ async function fetchWithTimeout(url: string, timeout: number): Promise<Response>
   }
 }
 
-async function fetchWithRetry(url: string, retries = MAX_RETRIES): Promise<Comment> {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetchWithTimeout(url, TIMEOUT_MS);
-      return await response.json();
-    } catch (error) {
-      if (i === retries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
-    }
-  }
-  throw new Error('Max retries reached');
-}
-
-// Modified getAllComments function with batching and caching
+// Get comments with optimized loading
 export async function getAllComments(
   kids: number[], 
   depth = 0, 
-  maxDepth = 2,  // Reduced max depth
+  maxDepth = 2,
   limit = INITIAL_FETCH_LIMIT
 ): Promise<Comment[]> {
   if (!kids || !kids.length || depth >= maxDepth) return [];
   
-  // Only fetch limited number of comments initially
   const kidsToFetch = kids.slice(0, limit);
   
   const promises = kidsToFetch.map(async id => {
@@ -133,9 +113,8 @@ export async function getAllComments(
       );
       const comment = await response.json();
       
-      // Only fetch immediate replies for initial load
       const replies = depth < maxDepth - 1 && comment.kids ? 
-        await getAllComments(comment.kids, depth + 1, maxDepth, 3) : // Only fetch 3 replies initially
+        await getAllComments(comment.kids, depth + 1, maxDepth, 3) : 
         [];
       
       const processedComment: Comment = {
@@ -162,7 +141,7 @@ export async function getAllComments(
   return comments.filter((c): c is Comment => c !== null);
 }
 
-// Add new function for loading more comments
+// Load more comments
 export async function loadMoreComments(
   kids: number[],
   offset: number,
@@ -172,7 +151,7 @@ export async function loadMoreComments(
   return getAllComments(nextBatch, 0, 2, limit);
 }
 
-// Add cache cleanup function (call this periodically)
+// Clear comment cache
 export function clearCommentCache() {
   commentCache.clear();
 }
@@ -223,32 +202,42 @@ export function getLocalTime(value:number){
   return date.toLocaleDateString(undefined, options);
 }
 
+// Format timestamp for display
+export function formatDate(value: number): string {
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  };
+  const date = new Date(value * 1000);
+  return date.toLocaleDateString(undefined, options);
+}
+
+// Save article to AsyncStorage
 export async function saveArticle(article: Article) {
   try {
-    // First, retrieve existing saved articles
     const savedArticlesJson = await AsyncStorage.getItem('savedArticles');
     const savedArticles = savedArticlesJson ? JSON.parse(savedArticlesJson) : [];
 
-    // Check if article is already saved to prevent duplicates
     const isArticleAlreadySaved = savedArticles.some(
       (savedArticle: Article) => savedArticle.id === article.id
     );
 
     if (!isArticleAlreadySaved) {
-      // Add new article
       savedArticles.push(article);
-
-      // Save updated articles back to storage
       await AsyncStorage.setItem('savedArticles', JSON.stringify(savedArticles));
       return true;
     }
-    return false; // Article already saved
+    return false;
   } catch (error) {
     console.error('Error saving article:', error);
     return false;
   }
 }
 
+// Get saved articles from AsyncStorage
 export async function getStorySaved(): Promise<Article[]> {
   try {
     const savedArticles = await AsyncStorage.getItem('savedArticles');
@@ -259,15 +248,14 @@ export async function getStorySaved(): Promise<Article[]> {
   }
 }
 
+// Get filtered and sorted saved stories
 export async function getFilteredSavedStories(
   sortOrder: 'newest' | 'oldest' = 'newest',
   searchTerm: string = ''
 ): Promise<Article[]> {
   try {
-    // Get all saved articles
     let savedArticles = await getStorySaved();
     
-    // Apply search filter if search term provided
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       savedArticles = savedArticles.filter(article => 
@@ -275,12 +263,11 @@ export async function getFilteredSavedStories(
       );
     }
     
-    // Sort articles based on the specified order
     savedArticles.sort((a, b) => {
       if (sortOrder === 'newest') {
-        return (b.time || 0) - (a.time || 0); // Newest first
+        return (b.time || 0) - (a.time || 0);
       } else {
-        return (a.time || 0) - (b.time || 0); // Oldest first
+        return (a.time || 0) - (b.time || 0);
       }
     });
     
@@ -291,15 +278,13 @@ export async function getFilteredSavedStories(
   }
 }
 
+// Remove article from saved articles
 export async function removeArticle(articleId: number) {
   try {
     const savedArticlesJson = await AsyncStorage.getItem('savedArticles');
     let savedArticles = savedArticlesJson ? JSON.parse(savedArticlesJson) : [];
 
-    // Filter out the article with the given ID
     savedArticles = savedArticles.filter((article: Article) => article.id !== articleId);
-
-    // Save the updated list back to storage
     await AsyncStorage.setItem('savedArticles', JSON.stringify(savedArticles));
     return savedArticles;
   } catch (error) {
@@ -308,17 +293,14 @@ export async function removeArticle(articleId: number) {
   }
 }
 
-// Add this function to your existing lib.ts file
-
-// Fetch a single item by ID
+// Fetch single item by ID
 export const fetchItem = async (id: number) => {
   try {
     const response = await fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`);
     if (!response.ok) {
       throw new Error(`Failed to fetch item ${id}`);
     }
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
     console.error(`Error fetching item ${id}:`, error);
     throw error;
