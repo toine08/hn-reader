@@ -2,7 +2,8 @@
   "expo": {
     "name": "hackers-news-reader",
     "slug": "hn-reader",
-    "version": "0.1",
+    "version": "1.0.0",
+    "sdkVersion": "53.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "hnreader.app",
@@ -38,7 +39,16 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FF6600",
+          "image": "./assets/images/splash.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
