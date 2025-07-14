@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "@/constants/Colors";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import NewsletterForm from "@/components/NewsletterForm";
-import { getStorySaved, addOfflineContentToSavedArticle, saveArticle, getStoryData } from "@/utils/lib";
+import { getStorySaved, addOfflineContentToSavedArticle, saveArticle, getStoryData, saveArticleWithOfflineContent } from "@/utils/lib";
 import { Article } from "@/utils/types";
 
 export default function SettingsScreen() {
@@ -220,10 +220,10 @@ export default function SettingsScreen() {
                   // Test with a real HN article
                   const testArticle = await getStoryData(44556684); // Use the article from logs
                   if (testArticle) {
-                    const success = await saveArticle(testArticle);
+                    const success = await saveArticleWithOfflineContent(testArticle);
                     Alert.alert(
                       success ? "Success" : "Info",
-                      success ? "Test article saved successfully!" : "Article was already saved"
+                      success ? "Test article saved successfully with offline content!" : "Article was already saved or updated with offline content"
                     );
                     // Refresh stats
                     const updatedArticles = await getStorySaved();
