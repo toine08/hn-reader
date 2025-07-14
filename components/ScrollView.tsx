@@ -1,6 +1,7 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { View, FlatList, Dimensions } from "react-native";
 import ListItem from "@/components/ListItem";
+import Toast from "@/components/Toast";
 import { Article } from "@/utils/types";
 import { getStories, getStorySaved, removeArticle, saveArticle } from "@/utils/lib";
 import LoadingPlaceholder from "./LoadingPlaceholder";
@@ -34,6 +35,15 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [savedArticleIds, setSavedArticleIds] = useState<number[]>([]);
+  const [toast, setToast] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    visible: false,
+    message: '',
+    type: 'info'
+  });
 
   // Load saved article IDs
   useFocusEffect(
@@ -112,10 +122,31 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
 
   const onPressSave = useCallback(async (item: Article) => {
     try {
-      await saveArticle(item);
+      // Show loading toast
+      setToast({
+        visible: true,
+        message: 'Saving article for offline reading...',
+        type: 'info'
+      });
+
+      const success = await saveArticle(item);
       setSavedArticleIds((prev: number[]) => [...prev, item.id]);
+      
+      // Show success/info toast
+      setToast({
+        visible: true,
+        message: success 
+          ? 'Article saved with offline content!' 
+          : 'Article saved (offline content may not be available)',
+        type: success ? 'success' : 'info'
+      });
     } catch (error) {
       console.error("Error saving article:", error);
+      setToast({
+        visible: true,
+        message: 'Failed to save article',
+        type: 'error'
+      });
     }
   }, []);
 
@@ -128,8 +159,19 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
         // Call the callback to notify parent component about deletion
         onArticleDeleted?.();
       }
+      
+      setToast({
+        visible: true,
+        message: 'Article removed from bookmarks',
+        type: 'info'
+      });
     } catch (error) {
       console.error('Error removing article:', error);
+      setToast({
+        visible: true,
+        message: 'Failed to remove article',
+        type: 'error'
+      });
     }
   }, [story, onArticleDeleted]);
 
@@ -181,6 +223,13 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
           autoscrollToTopThreshold: 10,
         }}
         getItemLayout={getItemLayout}
+      />
+      
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
       />
     </View>
   );

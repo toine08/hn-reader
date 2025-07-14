@@ -11,5 +11,10 @@ export interface Article {
   score?: number;       // Story score/points
   descendants?: number; // Comment count
   type?: string;        // Type of item (story, comment, etc)
+  // Offline content support
+  offlineContent?: string;     // HTML content fetched for offline reading
+  offlineContentType?: 'html' | 'text'; // Type of offline content
+  offlineTimestamp?: number;   // When the content was cached
+  isOfflineAvailable?: boolean; // Quick flag to check offline availability
 }
 

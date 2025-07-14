@@ -1,10 +1,13 @@
-import React, { memo } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { memo, useState } from "react";
+import { View, Text, TouchableOpacity, Modal, SafeAreaView } from "react-native";
 import * as WebBrowser from 'expo-web-browser';
 import { ListItemProps } from "@/utils/interfaces";
 import LinkPreview from "./LinkPreview";
+import OfflineReader from "./OfflineReader";
 import { useRouter } from "expo-router";
 import { Article } from "@/utils/types";
+import { FontAwesome } from '@expo/vector-icons';
+import { useColorScheme } from '@/components/useColorScheme';
 
 const ListItem: React.FC<ListItemProps> = memo(({
   item,
@@ -16,8 +19,11 @@ const ListItem: React.FC<ListItemProps> = memo(({
   savedArticles,
 }) => {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const [showOfflineReader, setShowOfflineReader] = useState(false);
   const isSaved = savedArticles.includes(item.id);
   const isSelfPost = !item.url && item.text;
+  const isOfflineAvailable = (item as Article).isOfflineAvailable;
 
   const handleToggleSave = () => {
     if (isSaved) {
@@ -28,6 +34,12 @@ const ListItem: React.FC<ListItemProps> = memo(({
   };
 
   const handleArticlePress = async () => {
+    // If it's a saved article with offline content, show option to read offline
+    if (isSaved && isOfflineAvailable && storyType === "bookmarks") {
+      setShowOfflineReader(true);
+      return;
+    }
+
     // If it's a self post, navigate to dedicated post page
     if (isSelfPost) {
       router.push(`/post/${item.id}`);
@@ -41,6 +53,10 @@ const ListItem: React.FC<ListItemProps> = memo(({
     }
   };
 
+  const handleOfflineRead = () => {
+    setShowOfflineReader(true);
+  };
+
   if (!item) return null;
 
   return (
@@ -49,27 +65,46 @@ const ListItem: React.FC<ListItemProps> = memo(({
         {/* Title Section */}
         <TouchableOpacity onPress={handleArticlePress}>
           <View className="mb-3">
-            <Text 
-              className="text-base font-medium text-black dark:text-white"
-              numberOfLines={2}
-            >
-              {(item as Article).title}
-            </Text>
+            <View className="flex-row items-start justify-between">
+              <Text 
+                className="text-base font-medium text-black dark:text-white flex-1 mr-2"
+                numberOfLines={2}
+              >
+                {(item as Article).title}
+              </Text>
+              {/* Offline indicator */}
+              {isOfflineAvailable && (
+                <View className="bg-green-100 dark:bg-green-900 px-2 py-1 rounded-full">
+                  <FontAwesome name="download" size={12} color="#22c55e" />
+                </View>
+              )}
+            </View>
           </View>
         </TouchableOpacity>
         
          {/* Buttons Section */}
          <View className="flex-row gap-3 mb-3">
           {storyType === "bookmarks" ? (
-            // Only Delete button
-            <TouchableOpacity
-              onPress={() => onPressTrash?.(item.id)}
-              className="bg-red-600 px-3 py-2 rounded-md"
-            >
-              <Text className="text-white text-sm">Delete</Text>
-            </TouchableOpacity>
+            // Bookmarks view - Delete button and Read Offline if available
+            <View className="flex-row gap-3">
+              <TouchableOpacity
+                onPress={() => onPressTrash?.(item.id)}
+                className="bg-red-600 px-3 py-2 rounded-md"
+              >
+                <Text className="text-white text-sm">Delete</Text>
+              </TouchableOpacity>
+              
+              {isOfflineAvailable && (
+                <TouchableOpacity
+                  onPress={handleOfflineRead}
+                  className="bg-green-600 px-3 py-2 rounded-md"
+                >
+                  <Text className="text-white text-sm">Read Offline</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           ) : (
-            // Toggling Save/Delete
+            // Other views - Toggling Save/Delete
             <TouchableOpacity
               onPress={handleToggleSave}
               className={`px-3 py-2 rounded-md ${
@@ -120,6 +155,31 @@ const ListItem: React.FC<ListItemProps> = memo(({
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Offline Reader Modal */}
+      <Modal
+        visible={showOfflineReader}
+        animationType="slide"
+        presentationStyle="fullScreen"
+      >
+        <SafeAreaView className="flex-1 bg-white dark:bg-black">
+          <View className="flex-row justify-between items-center p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black">
+            <Text className="text-lg font-semibold text-black dark:text-white">
+              Offline Reader
+            </Text>
+            <TouchableOpacity 
+              onPress={() => setShowOfflineReader(false)}
+              className="p-3 -mr-1 bg-gray-100 dark:bg-gray-800 rounded-full"
+            >
+              <FontAwesome name="close" size={20} color={colorScheme === 'dark' ? '#fff' : '#000'} />
+            </TouchableOpacity>
+          </View>
+          <OfflineReader 
+            article={item as Article} 
+            onClose={() => setShowOfflineReader(false)}
+          />
+        </SafeAreaView>
+      </Modal>
     </View>
   );
 });

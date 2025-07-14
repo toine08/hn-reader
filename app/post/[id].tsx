@@ -87,59 +87,80 @@ export default function PostPage() {
           )
         }} 
       />
-      <ScrollView className="flex-1 bg-white dark:bg-black p-4">
-        {/* Post title */}
-        <Text className="text-xl font-bold text-black dark:text-white mb-2">
-          {post.title}
-        </Text>
-        
-        {/* Post metadata */}
-        <View className="flex-row justify-between mb-6">
-          <Text className="text-sm text-zinc-600 dark:text-zinc-400">
-            by {post.by || 'Anonymous'} · {post.time ? getLocalTime(post.time) : ''}
-          </Text>
-          <Text className="text-sm text-zinc-600 dark:text-zinc-400">
-            {post.score || 0} points
-          </Text>
-        </View>
-        
-        {/* Post content */}
-        {post.text ? (
-          <View className="mb-8 bg-zinc-50 dark:bg-zinc-900 p-4 rounded-md">
-            <RenderHTML {...renderHtmlProps} />
-          </View>
-        ) : null}
-        
-        {/* Comments section */}
-        <View className="mb-4">
-          <Text className="text-lg font-semibold text-black dark:text-white mb-2">
-            Comments ({post.kids?.length || 0})
+      <ScrollView className="flex-1 bg-white dark:bg-black">
+        <View className="px-6 py-4">
+          {/* Post title */}
+          <Text className="text-2xl font-bold text-black dark:text-white mb-4 leading-8">
+            {post.title}
           </Text>
           
-          {comments.length > 0 ? (
-            comments.map((comment) => (
-              <View key={comment.id} className="mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-4">
-                <View className="flex-row justify-between mb-1">
-                  <Text className="font-medium text-black dark:text-white">
-                    {comment.by || 'Anonymous'}
-                  </Text>
-                  <Text className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {comment.time ? getLocalTime(comment.time) : ''}
-                  </Text>
+          {/* Post metadata */}
+          <View className="flex-row justify-between items-center mb-8 pb-4 border-b border-zinc-200 dark:border-zinc-700">
+            <View>
+              <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+                by {post.by || 'Anonymous'}
+              </Text>
+              <Text className="text-xs text-zinc-500 dark:text-zinc-500">
+                {post.time ? getLocalTime(post.time) : ''}
+              </Text>
+            </View>
+            <View className="bg-orange-100 dark:bg-orange-900/30 px-3 py-1 rounded-full">
+              <Text className="text-sm font-semibold text-orange-700 dark:text-orange-300">
+                {post.score || 0} points
+              </Text>
+            </View>
+          </View>
+          
+          {/* Post content */}
+          {post.text ? (
+            <View className="mb-8">
+              <RenderHTML 
+                {...renderHtmlProps}
+                source={{ html: post.text }}
+                contentWidth={windowWidth - 48}
+                baseStyle={{
+                  color: colorScheme === 'dark' ? '#e5e5e5' : '#1f2937',
+                  fontSize: 17,
+                  lineHeight: 28,
+                }}
+              />
+            </View>
+          ) : null}
+          
+          {/* Comments section */}
+          <View className="mb-4">
+            <Text className="text-xl font-bold text-black dark:text-white mb-6">
+              Comments ({post.kids?.length || 0})
+            </Text>
+            
+            {comments.length > 0 ? (
+              comments.map((comment) => (
+                <View key={comment.id} className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-700">
+                  <View className="flex-row justify-between items-center mb-3 pb-2 border-b border-zinc-200 dark:border-zinc-700">
+                    <Text className="font-semibold text-black dark:text-white">
+                      {comment.by || 'Anonymous'}
+                    </Text>
+                    <Text className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {comment.time ? getLocalTime(comment.time) : ''}
+                    </Text>
+                  </View>
+                  <RenderHTML
+                    baseStyle={{ 
+                      color: colorScheme === 'dark' ? '#e5e5e5' : '#374151',
+                      fontSize: 15,
+                      lineHeight: 24,
+                    }}
+                    contentWidth={windowWidth - 80}
+                    source={{ html: comment.text || '' }}
+                  />
                 </View>
-                <RenderHTML
-                  baseStyle={{ 
-                    color: colorScheme === 'dark' ? '#fff' : '#000',
-                    fontSize: 14,
-                  }}
-                  contentWidth={windowWidth - 32}
-                  source={{ html: comment.text || '' }}
-                />
+              ))
+            ) : (
+              <View className="p-6 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-700">
+                <Text className="text-zinc-600 dark:text-zinc-400 text-center">No comments yet.</Text>
               </View>
-            ))
-          ) : (
-            <Text className="text-zinc-600 dark:text-zinc-400">No comments yet.</Text>
-          )}
+            )}
+          </View>
         </View>
       </ScrollView>
     </>

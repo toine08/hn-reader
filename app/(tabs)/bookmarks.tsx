@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, View, Text, TextInput, TouchableOpacity } from "react-native";
+import { SafeAreaView, View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import StoryTypeModal from "../modal";
 import { Article } from "@/utils/types";
 import { ScrollView } from "@/components/ScrollView";
-import { getFilteredSavedStories } from "@/utils/lib";
+import { getFilteredSavedStories, clearAll } from "@/utils/lib";
 
 export default function Bookmarks() { 
   const [modalVisible, setModalVisible] = useState(false);
@@ -49,6 +49,33 @@ export default function Bookmarks() {
     setSearchTerm('');
   };
 
+  const handleClearAllBookmarks = () => {
+    Alert.alert(
+      "Clear All Bookmarks",
+      "Are you sure you want to delete all bookmarked articles? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete All",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await clearAll();
+              setRefreshKey(prev => prev + 1);
+              Alert.alert("Success", "All bookmarks have been cleared.");
+            } catch (error) {
+              console.error("Error clearing bookmarks:", error);
+              Alert.alert("Error", "Failed to clear bookmarks.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   // Add callback to handle when an article is deleted
   const handleArticleDeleted = () => {
     setRefreshKey(prev => prev + 1); // Force refresh of filtered articles
@@ -86,6 +113,20 @@ export default function Bookmarks() {
               color="#666" 
             />
           </TouchableOpacity>
+
+          {/* Clear all bookmarks button */}
+          {filteredArticles.length > 0 && (
+            <TouchableOpacity 
+              onPress={handleClearAllBookmarks} 
+              className="ml-1 p-1"
+            >
+              <AntDesign 
+                name="delete" 
+                size={18} 
+                color="#ef4444" 
+              />
+            </TouchableOpacity>
+          )}
         </View>
         
         {/* Status row - shows count and sorting info */}

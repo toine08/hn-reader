@@ -215,26 +215,10 @@ export function formatDate(value: number): string {
   return date.toLocaleDateString(undefined, options);
 }
 
-// Save article to AsyncStorage
-export async function saveArticle(article: Article) {
-  try {
-    const savedArticlesJson = await AsyncStorage.getItem('savedArticles');
-    const savedArticles = savedArticlesJson ? JSON.parse(savedArticlesJson) : [];
-
-    const isArticleAlreadySaved = savedArticles.some(
-      (savedArticle: Article) => savedArticle.id === article.id
-    );
-
-    if (!isArticleAlreadySaved) {
-      savedArticles.push(article);
-      await AsyncStorage.setItem('savedArticles', JSON.stringify(savedArticles));
-      return true;
-    }
-    return false;
-  } catch (error) {
-    console.error('Error saving article:', error);
-    return false;
-  }
+// Save article to AsyncStorage - Enhanced version with offline content
+export async function saveArticle(article: Article): Promise<boolean> {
+  // Use the new function that includes offline content
+  return await saveArticleWithOfflineContent(article);
 }
 
 // Get saved articles from AsyncStorage
@@ -306,4 +290,286 @@ export const fetchItem = async (id: number) => {
     throw error;
   }
 };
+
+// Clean HTML content aggressively to remove all problematic URLs and elements
+function cleanHtmlContent(html: string, baseUrl?: string): string {
+  let cleanedHtml = html;
+  
+  // Remove all potentially problematic elements first
+  cleanedHtml = cleanedHtml
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    .replace(/<head\b[^<]*(?:(?!<\/head>)<[^<]*)*<\/head>/gi, '')
+    .replace(/<nav\b[^<]*(?:(?!<\/nav>)<[^<]*)*<\/nav>/gi, '')
+    .replace(/<footer\b[^<]*(?:(?!<\/footer>)<[^<]*)*<\/footer>/gi, '')
+    .replace(/<header\b[^<]*(?:(?!<\/header>)<[^<]*)*<\/header>/gi, '')
+    .replace(/<iframe[^>]*>.*?<\/iframe>/gis, '')
+    .replace(/<video[^>]*>.*?<\/video>/gis, '')
+    .replace(/<audio[^>]*>.*?<\/audio>/gis, '')
+    .replace(/<embed[^>]*>/gi, '')
+    .replace(/<object[^>]*>.*?<\/object>/gis, '')
+    .replace(/<svg[^>]*>.*?<\/svg>/gis, '')
+    .replace(/<template[^>]*>.*?<\/template>/gis, '')
+    .replace(/<button[^>]*>.*?<\/button>/gis, '')
+    .replace(/<form[^>]*>.*?<\/form>/gis, '')
+    .replace(/<input[^>]*>/gi, '')
+    .replace(/<select[^>]*>.*?<\/select>/gis, '')
+    .replace(/<textarea[^>]*>.*?<\/textarea>/gis, '');
+
+  // Aggressive URL cleaning - remove ALL potentially problematic URL schemes and patterns
+  const problematicPatterns = [
+    // About URLs (various forms)
+    /(?:src|href)=["'][^"']*about:[^"']*["']/gi,
+    /(?:src|href)=["'][^"']*about\/{0,3}[^"']*["']/gi,
+    // Blob URLs
+    /(?:src|href)=["'][^"']*blob:[^"']*["']/gi,
+    // Data URLs (can be massive and problematic)
+    /(?:src|href)=["'][^"']*data:[^"']*["']/gi,
+    // JavaScript URLs
+    /(?:src|href)=["'][^"']*javascript:[^"']*["']/gi,
+    // Chrome extension URLs
+    /(?:src|href)=["'][^"']*chrome-extension:[^"']*["']/gi,
+    // Webkit/Safari specific
+    /(?:src|href)=["'][^"']*webkit:[^"']*["']/gi,
+    // File URLs
+    /(?:src|href)=["'][^"']*file:[^"']*["']/gi,
+    // FTP URLs (often problematic in mobile)
+    /(?:src|href)=["'][^"']*ftp:[^"']*["']/gi,
+    // Empty or just hash URLs
+    /(?:src|href)=["']["']/gi,
+    /(?:src|href)=["']#["']/gi,
+    /(?:src|href)=["'][#?][^"']*["']/gi,
+    // Next.js and build artifacts
+    /(?:src|href)=["'][^"']*\/_next\/[^"']*["']/gi,
+    /(?:src|href)=["'][^"']*\/static\/[^"']*["']/gi,
+    // Common problematic patterns
+    /(?:src|href)=["'][^"']*__webpack[^"']*["']/gi,
+    /(?:src|href)=["'][^"']*hot-update[^"']*["']/gi,
+  ];
+
+  // Apply all problematic pattern removals
+  problematicPatterns.forEach(pattern => {
+    cleanedHtml = cleanedHtml.replace(pattern, '');
+  });
+
+  // Remove ALL images that don't have proper HTTPS URLs
+  cleanedHtml = cleanedHtml.replace(/<img(?![^>]*src=["']https:\/\/[^"']+["'])[^>]*>/gi, '');
+  
+  // Remove any links that don't have proper HTTPS URLs or are just fragments
+  cleanedHtml = cleanedHtml.replace(/<a(?![^>]*href=["']https?:\/\/[^"']+["'])[^>]*>(.*?)<\/a>/gi, '$1');
+  
+  // Fix relative URLs to absolute if we have a base URL
+  if (baseUrl) {
+    try {
+      const base = new URL(baseUrl);
+      cleanedHtml = cleanedHtml
+        .replace(/src=["']\/([^"'\/][^"'\s?#]*)["']/gi, `src="${base.origin}/$1"`)
+        .replace(/href=["']\/([^"'\/][^"'\s?#]*)["']/gi, `href="${base.origin}/$1"`);
+    } catch (e) {
+      // If baseUrl is invalid, just remove relative URLs
+      cleanedHtml = cleanedHtml
+        .replace(/src=["']\/[^"']*["']/gi, '')
+        .replace(/href=["']\/[^"']*["']/gi, '');
+    }
+  }
+
+  // Final cleanup - remove any remaining about: references anywhere in the content
+  cleanedHtml = cleanedHtml
+    .replace(/about:\/{0,3}[^\s<>"']*/gi, '')
+    .replace(/about["']?:/gi, '');
+
+  // Remove any remaining empty or malformed attributes
+  cleanedHtml = cleanedHtml
+    .replace(/\s(?:src|href)=["']["']/gi, '')
+    .replace(/\s(?:src|href)=["'][^"']{0,3}["']/gi, '');
+
+  return cleanedHtml;
+}
+
+// Extract readable content from HTML with better text extraction
+function extractReadableContent(html: string): string {
+  // First apply basic cleaning
+  const cleaned = cleanHtmlContent(html);
+  
+  // Try to extract main content containers first
+  const contentSelectors = [
+    /<main[^>]*>(.*?)<\/main>/is,
+    /<article[^>]*>(.*?)<\/article>/is,
+    /<div[^>]*class[^>]*(?:content|post|article|entry|body)[^>]*>(.*?)<\/div>/is,
+    /<div[^>]*id[^>]*(?:content|post|article|entry|body)[^>]*>(.*?)<\/div>/is,
+  ];
+  
+  let extractedContent = cleaned;
+  for (const selector of contentSelectors) {
+    const match = cleaned.match(selector);
+    if (match && match[1].length > 200) {
+      extractedContent = match[1];
+      break;
+    }
+  }
+  
+  // Extract paragraphs and headings for better readability
+  const contentElements = extractedContent.match(/<(?:p|h[1-6]|blockquote|pre|ul|ol|li)[^>]*>.*?<\/(?:p|h[1-6]|blockquote|pre|ul|ol|li)>/gis) || [];
+  
+  if (contentElements.length > 3) {
+    return contentElements.join('\n');
+  }
+  
+  // If we couldn't extract structured content, return cleaned HTML
+  return extractedContent;
+}
+
+// Fetch and store offline content for an article
+export async function fetchOfflineContent(article: Article): Promise<string | null> {
+  try {
+    // For self-posts (Ask HN, Show HN), the content is already in the text field
+    if (!article.url && article.text) {
+      return article.text;
+    }
+    
+    // For external URLs, we'll try to fetch a simplified version
+    if (article.url) {
+      const response = await fetchWithTimeout(article.url, 10000);
+      const html = await response.text();
+      
+      // Apply aggressive HTML cleaning
+      let cleanedHtml = cleanHtmlContent(html, article.url);
+      
+      // Extract main readable content
+      cleanedHtml = extractReadableContent(cleanedHtml);
+      
+      // Final safety check - if content still has issues or is too short, 
+      // extract just the text content
+      if (cleanedHtml.includes('about:') || cleanedHtml.length < 100) {
+        const textContent = html.replace(/<[^>]*>/g, '').trim();
+        if (textContent.length > 100) {
+          return `<p>${textContent.substring(0, 5000)}</p>`;
+        } else {
+          return `<p>Content could not be properly extracted for offline reading. Please visit the original URL when online.</p>`;
+        }
+      }
+      
+      // Final clean up pass
+      cleanedHtml = cleanHtmlContent(cleanedHtml);
+      
+      return cleanedHtml;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error fetching offline content:', error);
+    // Return a simple fallback message instead of null
+    return `<p>Content could not be cached for offline reading. Original URL: ${article.url}</p>`;
+  }
+}
+
+// Save article with offline content
+export async function saveArticleWithOfflineContent(article: Article): Promise<boolean> {
+  try {
+    console.log('Saving article with offline content:', article.id, article.title);
+    
+    // First, try to fetch offline content
+    const offlineContent = await fetchOfflineContent(article);
+    console.log('Fetched offline content length:', offlineContent?.length || 0);
+    
+    // Create enhanced article with offline content
+    const enhancedArticle: Article = {
+      ...article,
+      offlineContent: offlineContent || undefined,
+      offlineContentType: article.url ? 'html' : 'text',
+      offlineTimestamp: Date.now(),
+      isOfflineAvailable: !!offlineContent
+    };
+    
+    console.log('Enhanced article offline available:', enhancedArticle.isOfflineAvailable);
+    
+    const savedArticlesJson = await AsyncStorage.getItem('savedArticles');
+    const savedArticles = savedArticlesJson ? JSON.parse(savedArticlesJson) : [];
+
+    const isArticleAlreadySaved = savedArticles.some(
+      (savedArticle: Article) => savedArticle.id === article.id
+    );
+
+    if (!isArticleAlreadySaved) {
+      savedArticles.push(enhancedArticle);
+      await AsyncStorage.setItem('savedArticles', JSON.stringify(savedArticles));
+      console.log('Article saved successfully with offline content');
+      return true;
+    } else {
+      // Update existing article with offline content if it doesn't have it
+      const existingIndex = savedArticles.findIndex(
+        (savedArticle: Article) => savedArticle.id === article.id
+      );
+      if (existingIndex !== -1 && !savedArticles[existingIndex].offlineContent) {
+        savedArticles[existingIndex] = enhancedArticle;
+        await AsyncStorage.setItem('savedArticles', JSON.stringify(savedArticles));
+        console.log('Updated existing article with offline content');
+      }
+    }
+    return false;
+  } catch (error) {
+    console.error('Error saving article with offline content:', error);
+    return false;
+  }
+}
+
+// Get offline content for an article
+export async function getOfflineContent(articleId: number): Promise<string | null> {
+  try {
+    const savedArticles = await getStorySaved();
+    const article = savedArticles.find(a => a.id === articleId);
+    return article?.offlineContent || null;
+  } catch (error) {
+    console.error('Error getting offline content:', error);
+    return null;
+  }
+}
+
+// Check if article has offline content available
+export async function isArticleOfflineAvailable(articleId: number): Promise<boolean> {
+  try {
+    const savedArticles = await getStorySaved();
+    const article = savedArticles.find(a => a.id === articleId);
+    return !!article?.isOfflineAvailable;
+  } catch (error) {
+    console.error('Error checking offline availability:', error);
+    return false;
+  }
+}
+
+// Update existing saved article to include offline content
+export async function addOfflineContentToSavedArticle(articleId: number): Promise<boolean> {
+  try {
+    const savedArticles = await getStorySaved();
+    const articleIndex = savedArticles.findIndex(a => a.id === articleId);
+    
+    if (articleIndex === -1) {
+      return false;
+    }
+    
+    const article = savedArticles[articleIndex];
+    if (article.isOfflineAvailable) {
+      return true; // Already has offline content
+    }
+    
+    const offlineContent = await fetchOfflineContent(article);
+    if (offlineContent) {
+      savedArticles[articleIndex] = {
+        ...article,
+        offlineContent,
+        offlineContentType: article.url ? 'html' : 'text',
+        offlineTimestamp: Date.now(),
+        isOfflineAvailable: true
+      };
+      
+      await AsyncStorage.setItem('savedArticles', JSON.stringify(savedArticles));
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error adding offline content to saved article:', error);
+    return false;
+  }
+}
 
