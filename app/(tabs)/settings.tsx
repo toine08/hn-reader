@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "@/constants/Colors";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import NewsletterForm from "@/components/NewsletterForm";
-import { getStorySaved, addOfflineContentToSavedArticle, saveArticle, getStoryData, saveArticleWithOfflineContent } from "@/utils/lib";
+import { getStorySaved, addOfflineContentToSavedArticle } from "@/utils/lib";
 import { Article } from "@/utils/types";
 
 export default function SettingsScreen() {
@@ -20,6 +20,7 @@ export default function SettingsScreen() {
     offline: 0,
     loading: false
   });
+  const [autoOfflineDownload, setAutoOfflineDownload] = useState<boolean>(false);
 
   const pages = [
     { id: "index", title: "Best", icon: "star" },
@@ -55,8 +56,18 @@ export default function SettingsScreen() {
       }
     };
 
+    const loadAutoOfflineDownloadSetting = async () => {
+      try {
+        const autoDownload = await AsyncStorage.getItem("autoOfflineDownload");
+        setAutoOfflineDownload(autoDownload === "true");
+      } catch (error) {
+        console.error("Error loading auto offline download setting:", error);
+      }
+    };
+
     loadDefaultPage();
     loadOfflineStats();
+    loadAutoOfflineDownloadSetting();
   }, []);
 
   const selectDefaultPage = async (pageId: string) => {
@@ -65,6 +76,16 @@ export default function SettingsScreen() {
       setDefaultPage(pageId);
     } catch (error) {
       console.error("Error saving default page setting:", error);
+    }
+  };
+
+  const toggleAutoOfflineDownload = async () => {
+    try {
+      const newValue = !autoOfflineDownload;
+      await AsyncStorage.setItem("autoOfflineDownload", newValue.toString());
+      setAutoOfflineDownload(newValue);
+    } catch (error) {
+      console.error("Error saving auto offline download setting:", error);
     }
   };
 
@@ -212,80 +233,46 @@ export default function SettingsScreen() {
               </Text>
             </TouchableOpacity>
 
-            {/* Test Save Article Button */}
-            <TouchableOpacity
-              className="flex-row items-center justify-center py-3 px-4 rounded-lg bg-green-500 dark:bg-green-600 mt-3"
-              onPress={async () => {
-                try {
-                  // Test with a real HN article
-                  const testArticle = await getStoryData(44556684); // Use the article from logs
-                  if (testArticle) {
-                    const success = await saveArticleWithOfflineContent(testArticle);
-                    Alert.alert(
-                      success ? "Success" : "Info",
-                      success ? "Test article saved successfully with offline content!" : "Article was already saved or updated with offline content"
-                    );
-                    // Refresh stats
-                    const updatedArticles = await getStorySaved();
-                    const updatedOfflineCount = updatedArticles.filter(article => article.isOfflineAvailable).length;
-                    setOfflineStats({
-                      total: updatedArticles.length,
-                      offline: updatedOfflineCount,
-                      loading: false
-                    });
-                  }
-                } catch (error) {
-                  console.error("Error testing save:", error);
-                  Alert.alert("Error", "Failed to test save article");
-                }
-              }}
-            >
-              <FontAwesome5
-                name="plus"
-                size={16}
-                color="white"
-                style={{ marginRight: 8 }}
-              />
-              <Text className="text-white font-semibold">
-                Test Save Article
-              </Text>
-            </TouchableOpacity>
 
-            {/* Test HTML Cleaning Button */}
+          </View>
+
+          {/* Auto Offline Download Setting */}
+          <View className="mb-6 rounded-lg overflow-hidden">
+            <Text className="text-lg font-bold mb-2 text-zinc-800 dark:text-zinc-200">
+              Auto Offline Download
+            </Text>
+            <Text className="mb-4 text-zinc-600 dark:text-zinc-400 text-sm">
+              Automatically download articles for offline reading when you bookmark them
+            </Text>
+
             <TouchableOpacity
-              className="flex-row items-center justify-center py-3 px-4 rounded-lg bg-purple-500 dark:bg-purple-600 mt-3"
-              onPress={() => {
-                // Test HTML content with problematic URLs
-                const testHtml = `
-                  <div>
-                    <p>This is a test article.</p>
-                    <img src="about:///blank" alt="problematic">
-                    <a href="about:///blank">Bad link</a>
-                    <img src="blob:test" alt="blob">
-                    <script>alert('bad');</script>
-                    <p>This should remain visible.</p>
-                    <img src="https://example.com/good.jpg" alt="good">
-                  </div>
-                `;
-                
-                // This would show us what our cleaning function does
-                console.log('Original HTML:', testHtml);
-                
-                Alert.alert(
-                  "HTML Cleaning Test",
-                  "Check console logs to see the HTML cleaning results. The cleaned content should remove all about:, blob:, and script tags while keeping valid content."
-                );
-              }}
+              className={`flex-row items-center justify-between py-4 px-4 rounded-lg ${
+                autoOfflineDownload ? "bg-green-50 dark:bg-green-900" : "bg-zinc-50 dark:bg-zinc-800"
+              }`}
+              onPress={toggleAutoOfflineDownload}
             >
+              <View className="flex-row items-center">
+                <FontAwesome5
+                  name="download"
+                  size={18}
+                  color={autoOfflineDownload ? "#22c55e" : "#6b7280"}
+                  style={{ marginRight: 12 }}
+                />
+                <View>
+                  <Text className="text-base text-zinc-700 dark:text-zinc-300 font-medium">
+                    Auto Download for Offline Reading
+                  </Text>
+                  <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+                    {autoOfflineDownload ? "Enabled" : "Disabled"}
+                  </Text>
+                </View>
+              </View>
+
               <FontAwesome5
-                name="code"
-                size={16}
-                color="white"
-                style={{ marginRight: 8 }}
+                name={autoOfflineDownload ? "toggle-on" : "toggle-off"}
+                size={24}
+                color={autoOfflineDownload ? "#22c55e" : "#6b7280"}
               />
-              <Text className="text-white font-semibold">
-                Test HTML Cleaning
-              </Text>
             </TouchableOpacity>
           </View>
 

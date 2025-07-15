@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { SafeAreaView, View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
 import StoryTypeModal from "../modal";
 import { Article } from "@/utils/types";
 import { ScrollView } from "@/components/ScrollView";
@@ -15,6 +16,13 @@ export default function Bookmarks() {
   const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to force re-render
+
+  // Refresh articles when the tab is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      setRefreshKey(prev => prev + 1);
+    }, [])
+  );
 
   // Debounce search term to avoid excessive filtering
   useEffect(() => {

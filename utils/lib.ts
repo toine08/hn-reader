@@ -217,8 +217,24 @@ export function formatDate(value: number): string {
 
 // Save article to AsyncStorage - Enhanced version with offline content
 export async function saveArticle(article: Article): Promise<boolean> {
-  // Use the new function that includes offline content
-  return await saveArticleWithOfflineContent(article);
+  try {
+    const savedArticlesJson = await AsyncStorage.getItem('savedArticles');
+    const savedArticles = savedArticlesJson ? JSON.parse(savedArticlesJson) : [];
+
+    const isArticleAlreadySaved = savedArticles.some(
+      (savedArticle: Article) => savedArticle.id === article.id
+    );
+
+    if (!isArticleAlreadySaved) {
+      savedArticles.push(article);
+      await AsyncStorage.setItem('savedArticles', JSON.stringify(savedArticles));
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error saving article:', error);
+    return false;
+  }
 }
 
 // Get saved articles from AsyncStorage
@@ -569,6 +585,17 @@ export async function addOfflineContentToSavedArticle(articleId: number): Promis
     return false;
   } catch (error) {
     console.error('Error adding offline content to saved article:', error);
+    return false;
+  }
+}
+
+// Check if auto offline download is enabled
+export async function isAutoOfflineDownloadEnabled(): Promise<boolean> {
+  try {
+    const autoDownload = await AsyncStorage.getItem("autoOfflineDownload");
+    return autoDownload === "true";
+  } catch (error) {
+    console.error("Error checking auto offline download setting:", error);
     return false;
   }
 }

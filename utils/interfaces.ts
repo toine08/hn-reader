@@ -25,5 +25,7 @@ export interface ListItemProps {
   onPressSave?: (item: Article) => void;
   onPressTrash?: (articleId: number) => void;
   onPressComments?: () => void;
+  onPressDownloadOffline?: (articleId: number) => void;
+  downloadingOfflineIds?: Set<number>;
   savedArticles: number[];
 }

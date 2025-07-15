@@ -16,6 +16,8 @@ const ListItem: React.FC<ListItemProps> = memo(({
   onPressSave,
   onPressTrash,
   onPressComments,
+  onPressDownloadOffline,
+  downloadingOfflineIds,
   savedArticles,
 }) => {
   const router = useRouter();
@@ -24,6 +26,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
   const isSaved = savedArticles.includes(item.id);
   const isSelfPost = !item.url && item.text;
   const isOfflineAvailable = (item as Article).isOfflineAvailable;
+  const isDownloadingOffline = downloadingOfflineIds?.has(item.id) || false;
 
   const handleToggleSave = () => {
     if (isSaved) {
@@ -83,9 +86,9 @@ const ListItem: React.FC<ListItemProps> = memo(({
         </TouchableOpacity>
         
          {/* Buttons Section */}
-         <View className="flex-row gap-3 mb-3">
+         <View className="flex-row gap-3">
           {storyType === "bookmarks" ? (
-            // Bookmarks view - Delete button and Read Offline if available
+            // Bookmarks view - Delete button and Download Offline button
             <View className="flex-row gap-3">
               <TouchableOpacity
                 onPress={() => onPressTrash?.(item.id)}
@@ -94,12 +97,17 @@ const ListItem: React.FC<ListItemProps> = memo(({
                 <Text className="text-white text-sm">Delete</Text>
               </TouchableOpacity>
               
-              {isOfflineAvailable && (
+              {!isOfflineAvailable && (
                 <TouchableOpacity
-                  onPress={handleOfflineRead}
-                  className="bg-green-600 px-3 py-2 rounded-md"
+                  onPress={() => onPressDownloadOffline?.(item.id)}
+                  disabled={isDownloadingOffline}
+                  className={`px-3 py-2 rounded-md ${
+                    isDownloadingOffline ? "bg-gray-400" : "bg-blue-600"
+                  }`}
                 >
-                  <Text className="text-white text-sm">Read Offline</Text>
+                  <Text className="text-white text-sm">
+                    {isDownloadingOffline ? "Downloading..." : "Download Offline"}
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -120,10 +128,11 @@ const ListItem: React.FC<ListItemProps> = memo(({
           {onPressComments && (
             <TouchableOpacity 
               onPress={onPressComments}
-              className="bg-zinc-200 dark:bg-zinc-800 px-3 py-2 rounded-md"
+              className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 px-3 py-2 rounded-md flex-row items-center"
             >
-              <Text className="text-black dark:text-white text-sm">
-                Comments {item.descendants && item.descendants > 0 ? `(${item.descendants})` : ''}
+              <FontAwesome name="comment" size={14} color="#3b82f6" style={{ marginRight: 6 }} />
+              <Text className="text-blue-600 dark:text-blue-400 text-sm font-medium">
+                {item.descendants && item.descendants > 0 ? `${item.descendants}` : '0'}
               </Text>
             </TouchableOpacity>
           )}
@@ -132,7 +141,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
         {/* Self Post Preview */}
         {isSelfPost && (
           <TouchableOpacity onPress={handleArticlePress}>
-            <View className="bg-zinc-100 dark:bg-zinc-900 p-3 rounded-md mt-1">
+            <View className="bg-zinc-100 dark:bg-zinc-900 p-3 rounded-md mt-3">
               <Text 
                 className="text-sm text-black dark:text-white" 
                 numberOfLines={3}
@@ -149,7 +158,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
         {/* Link Preview Section */}
         {item.url && (
           <TouchableOpacity onPress={handleArticlePress}>
-            <View className="pt-2">
+            <View className={`${isSelfPost ? "pt-2" : "pt-3"}`}>
               <LinkPreview url={item.url} />
             </View>
           </TouchableOpacity>

@@ -3,7 +3,7 @@ import { View, FlatList, Dimensions } from "react-native";
 import ListItem from "@/components/ListItem";
 import Toast from "@/components/Toast";
 import { Article } from "@/utils/types";
-import { getStories, getStorySaved, removeArticle, saveArticle } from "@/utils/lib";
+import { getStories, getStorySaved, removeArticle, saveArticle, addOfflineContentToSavedArticle, isAutoOfflineDownloadEnabled } from "@/utils/lib";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import { useFocusEffect } from "expo-router";
 
@@ -44,6 +44,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
     message: '',
     type: 'info'
   });
+  const [downloadingOfflineIds, setDownloadingOfflineIds] = useState<Set<number>>(new Set());
 
   // Load saved article IDs
   useFocusEffect(
@@ -125,27 +126,97 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
       // Show loading toast
       setToast({
         visible: true,
-        message: 'Saving article for offline reading...',
+        message: 'Saving article...',
         type: 'info'
       });
 
       const success = await saveArticle(item);
       setSavedArticleIds((prev: number[]) => [...prev, item.id]);
       
-      // Show success/info toast
-      setToast({
-        visible: true,
-        message: success 
-          ? 'Article saved with offline content!' 
-          : 'Article saved (offline content may not be available)',
-        type: success ? 'success' : 'info'
-      });
+      // Check if auto offline download is enabled
+      const autoDownloadEnabled = await isAutoOfflineDownloadEnabled();
+      
+      if (autoDownloadEnabled && success) {
+        // Automatically download offline content
+        setToast({
+          visible: true,
+          message: 'Saving article and downloading offline content...',
+          type: 'info'
+        });
+        
+        const offlineSuccess = await addOfflineContentToSavedArticle(item.id);
+        
+        setToast({
+          visible: true,
+          message: offlineSuccess 
+            ? 'Article saved with offline content!' 
+            : 'Article saved but offline content failed to download',
+          type: offlineSuccess ? 'success' : 'info'
+        });
+      } else {
+        // Show success/info toast
+        setToast({
+          visible: true,
+          message: success 
+            ? 'Article saved! Go to bookmarks to download offline content.' 
+            : 'Article was already saved',
+          type: success ? 'success' : 'info'
+        });
+      }
     } catch (error) {
       console.error("Error saving article:", error);
       setToast({
         visible: true,
         message: 'Failed to save article',
         type: 'error'
+      });
+    }
+  }, []);
+
+  const handlePressDownloadOffline = useCallback(async (articleId: number) => {
+    try {
+      setDownloadingOfflineIds(prev => new Set(prev).add(articleId));
+      
+      setToast({
+        visible: true,
+        message: 'Downloading offline content...',
+        type: 'info'
+      });
+
+      const success = await addOfflineContentToSavedArticle(articleId);
+      
+      if (success) {
+        // Update the stories state to reflect the offline availability
+        setStories(prev => prev.map(story => 
+          story.id === articleId 
+            ? { ...story, isOfflineAvailable: true, offlineTimestamp: Date.now() }
+            : story
+        ));
+        
+        setToast({
+          visible: true,
+          message: 'Article downloaded for offline reading!',
+          type: 'success'
+        });
+      } else {
+        setToast({
+          visible: true,
+          message: 'Failed to download offline content',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      console.error('Error downloading offline content:', error);
+      setToast({
+        visible: true,
+        message: 'Failed to download offline content',
+        type: 'error'
+      });
+    } finally {
+      setDownloadingOfflineIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(articleId);
+        return newSet;
       });
     }
   }, []);
@@ -197,9 +268,11 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
       onPressSave={() => onPressSave(item)}
       onPressComments={() => onPressComments(item)} 
       onPressTrash={() => handlePressTrash(item.id)}
+      onPressDownloadOffline={() => handlePressDownloadOffline(item.id)}
+      downloadingOfflineIds={downloadingOfflineIds}
       savedArticles={savedArticleIds}
     />
-  ), [saveOrTrash, story, onPressSave, onPressComments, handlePressTrash, savedArticleIds]);
+  ), [saveOrTrash, story, onPressSave, onPressComments, handlePressTrash, handlePressDownloadOffline, downloadingOfflineIds, savedArticleIds]);
 
   return (
     <View className="flex-1 w-full">
