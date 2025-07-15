@@ -62,10 +62,7 @@ export class NewsletterAPI {
 
   async subscribe(email: string, name?: string): Promise<boolean> {
     try {
-      // Debug logging
-      console.log('Newsletter service:', this.config.service);
-      console.log('API Key available:', !!this.config.apiKey);
-      console.log('API Key length:', this.config.apiKey?.length);
+      // Debug logging removed for production safety
       
       switch (this.config.service) {
         case 'mailchimp':

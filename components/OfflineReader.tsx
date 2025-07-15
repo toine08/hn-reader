@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Article } from '@/utils/types';
 import RenderHTML from 'react-native-render-html';
 import { FontAwesome } from '@expo/vector-icons';
-import { getLocalTime, getOfflineContent } from '@/utils/lib';
+import { getLocalTime, getOfflineContent, PROBLEMATIC_PATTERNS } from '@/utils/lib';
 import { useColorScheme } from '@/components/useColorScheme';
 
 interface OfflineReaderProps {
@@ -241,17 +241,7 @@ export default function OfflineReader({ article, onClose }: OfflineReaderProps) 
                   let safeContent = offlineContent;
                   
                   // Remove any remaining problematic URLs and patterns
-                  const problematicPatterns = [
-                    /about:\/{0,3}[^"'\s<>]*/gi,
-                    /blob:[^"'\s<>]*/gi,
-                    /data:[^"'\s<>]*/gi,
-                    /javascript:[^"'\s<>]*/gi,
-                    /chrome-extension:[^"'\s<>]*/gi,
-                    /webkit:[^"'\s<>]*/gi,
-                    /file:[^"'\s<>]*/gi,
-                  ];
-                  
-                  problematicPatterns.forEach(pattern => {
+                  PROBLEMATIC_PATTERNS.forEach(pattern => {
                     safeContent = safeContent.replace(pattern, '');
                   });
                   

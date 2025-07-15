@@ -1,147 +1,158 @@
 # Offline Reading Feature
 
 ## Overview
-The Hacker News Reader app provides robust offline reading functionality that allows users to read articles even without an internet connection. The feature automatically caches article content when saving bookmarks and provides a clean, readable interface for offline consumption.
+The Hacker News Reader app provides a user-controlled offline reading system that allows users to save articles for offline consumption. Users have full control over which articles get downloaded for offline reading, preventing unwanted storage usage.
 
 ## Key Features
 
-### 1. Automatic Content Caching
-- When saving an article to bookmarks, the app automatically attempts to fetch and cache the full content
-- For external URLs: Downloads HTML content and processes it for optimal offline viewing
-- For self-posts (Ask HN, Show HN): Uses the existing text content directly
-- All cached content is stored locally using AsyncStorage
+### 1. Manual Offline Download Control
+- **Auto-Download Setting**: Users can enable/disable automatic offline downloads in Settings
+- **Manual Downloads**: In the Bookmarks tab, users can individually download articles for offline reading
+- **Storage Control**: Users decide what content to cache, preventing storage bloat
+- **Bulk Downloads**: Option to download all bookmarked articles at once in Settings
 
-### 2. Visual Indicators
-- Green download icon and "Read Offline" button appear for articles with cached content
-- Clear offline status indicator when reading cached content
-- Timestamp showing when content was cached
+### 2. Smart Save Workflow
+- **Save Article**: Bookmarks article without downloading content (default behavior)
+- **Auto-Download OFF** (Default): Users manually choose which articles to download offline
+- **Auto-Download ON**: Articles are automatically downloaded when bookmarked
 
-### 3. Robust Content Processing
-The app employs aggressive HTML cleaning to ensure offline content is safe and readable:
+### 3. Visual Indicators
+- **Green Download Icon**: Shows articles available for offline reading
+- **Download Offline Button**: Appears for articles not yet cached
+- **Downloading State**: Shows progress during content download
+- **Clean Interface**: No clutter - only relevant buttons are shown
 
-#### Removed Elements:
-- All script, style, and meta tags
-- Problematic embedded content (iframes, videos, audio)
-- Navigation elements (nav, header, footer)
-- Interactive elements (buttons, forms, inputs)
-- Potentially harmful content (SVGs, templates)
-
-#### URL Sanitization:
-- Removes all `about:` URLs (prevents the "about:///blank" error)
-- Strips `blob:`, `data:`, `javascript:`, and other problematic URL schemes
-- Removes empty or malformed attributes
-- Converts relative URLs to absolute URLs when possible
-- Removes images without proper HTTPS sources
-
-#### Content Extraction:
-- Attempts to extract main content from `<main>`, `<article>`, or content-specific containers
-- Falls back to extracting paragraphs and headings for better readability
-- Provides plain text fallback if HTML processing fails
-
-### 4. Fallback Mechanisms
-- **Text-Only Mode**: Users can toggle between rich HTML and plain text modes
-- **Automatic Fallback**: If HTML content has issues, automatically switches to text-only mode
-- **Error Handling**: Graceful degradation when content can't be processed
-- **Quality Checks**: Validates content before rendering to prevent display issues
-
-### 5. User Interface Features
-- **"Clear All Bookmarks"** button with confirmation dialog
-- **Bulk offline content download** for existing bookmarks
-- **Search and sort** functionality for bookmarks
-- **Improved typography** for better readability
-- **Dark mode support** for all offline reading interfaces
+### 4. Improved User Experience
+- **Immediate Refresh**: Bookmarks page updates instantly when articles are saved
+- **Smart Spacing**: Clean layout with proper button spacing
+- **Modern Comments UI**: Enhanced comments button with icon and count
+- **Focus-Based Refresh**: Bookmarks automatically refresh when tab is accessed
 
 ## Usage
 
-### Saving Articles for Offline Reading
-1. Navigate to any article
-2. Tap the bookmark button to save
-3. The app automatically attempts to cache content for offline reading
-4. A green download icon will appear if content is successfully cached
+### Saving Articles
+1. **Browse** any story list (Best, Trending, Latest, Job Board)
+2. **Tap "Save"** to bookmark the article
+3. **Check Auto-Download Setting**:
+   - If **OFF**: Article saved, go to Bookmarks to download offline content
+   - If **ON**: Article saved with automatic offline content download
 
-### Reading Offline Content
-1. Go to the Bookmarks tab
-2. Look for articles with the green download icon or "Read Offline" button
-3. Tap to open the article
-4. The content will display with an offline indicator
-5. Use the "Text"/"Rich" toggle for different viewing modes
+### Managing Auto-Download Setting
+1. **Go to Settings**
+2. **Find "Auto Offline Download" section**
+3. **Toggle the setting**:
+   - **Enabled**: Automatically downloads content when saving articles
+   - **Disabled**: Manual download required from Bookmarks page
 
-### Managing Offline Content
-- **Download All**: Use the "Download All Offline Content" button in Settings to cache content for existing bookmarks
-- **Clear All**: Use the "Clear All Bookmarks" button to remove all saved articles
-- **Individual Management**: Remove individual articles by swiping in the bookmarks list
+### Downloading Offline Content
+**Individual Downloads (in Bookmarks):**
+1. **Navigate to Bookmarks tab**
+2. **Find articles without the green download icon**
+3. **Tap "Download Offline" button**
+4. **Wait for "Downloading..." to complete**
+5. **Green download icon appears when ready**
+
+**Bulk Downloads (in Settings):**
+1. **Go to Settings → Offline Reading section**
+2. **Tap "Download All Offline Content"**
+3. **Confirm the download**
+4. **Wait for completion notification**
+
+### Reading Offline Articles
+1. **Navigate to Bookmarks**
+2. **Tap on any article with a green download icon**
+3. **Article opens in offline reader automatically**
+4. **Full content available without internet connection**
+
+## Interface Design
+
+### Bookmarks Page
+- **Delete Button**: Red button to remove bookmark
+- **Download Offline Button**: Blue button for articles without offline content
+- **Comments Button**: Modern blue design with comment icon and count
+- **Clean Layout**: Proper spacing, no visual clutter
+
+### Settings Page
+- **Auto Offline Download Toggle**: Control automatic downloading
+- **Offline Statistics**: Shows total bookmarks and offline availability
+- **Progress Bar**: Visual representation of offline content coverage
+- **Bulk Download Button**: Download all missing offline content
+
+### Visual Feedback
+- **Green Download Icon**: Compact indicator next to article title
+- **Loading States**: Clear "Downloading..." feedback
+- **Toast Messages**: Success/error notifications
+- **Progress Tracking**: Real-time download status
 
 ## Technical Implementation
 
-### Content Storage
-- Uses AsyncStorage for local persistence
-- Enhanced Article type with offline-specific fields:
-  - `offlineContent`: Cleaned HTML or text content
-  - `offlineContentType`: 'html' or 'text'
-  - `offlineTimestamp`: When content was cached
-  - `isOfflineAvailable`: Boolean flag for availability
+### Storage Strategy
+- **Selective Caching**: Only downloads when requested or auto-enabled
+- **AsyncStorage**: Local persistence for offline content
+- **Smart Refresh**: Automatic UI updates when content changes
+- **Memory Efficiency**: Downloads only necessary content
 
-### HTML Cleaning Process
-1. **Element Removal**: Strips all potentially problematic HTML elements
-2. **URL Sanitization**: Removes dangerous URL schemes and malformed attributes
-3. **Content Extraction**: Attempts to extract main readable content
-4. **Quality Validation**: Checks content quality and triggers fallbacks if needed
-5. **Final Cleanup**: Applies additional safety measures before storage
+### Content Processing
+- **HTML Cleaning**: Removes scripts, ads, and problematic content
+- **URL Sanitization**: Fixes broken links and problematic URLs
+- **Text Extraction**: Fallback to plain text for complex articles
+- **Quality Validation**: Ensures content is readable before storage
 
-### Error Handling
-- Comprehensive try-catch blocks throughout the offline content pipeline
-- Automatic fallback to text-only mode for problematic content
-- User-friendly error messages and status indicators
-- Console logging for debugging purposes
+### State Management
+- **Download Tracking**: Prevents duplicate downloads
+- **Real-time Updates**: UI reflects download status changes
+- **Focus Refresh**: Bookmarks update when tab becomes active
+- **Error Handling**: Graceful degradation for failed downloads
 
-## Limitations
+## User Control Philosophy
 
-### Content Quality
-- Some websites may not extract well due to complex layouts or anti-scraping measures
-- Dynamic content (JavaScript-generated) is not captured
-- Some formatting may be lost during the cleaning process
+### Storage Respect
+- **No Automatic Storage Usage**: Content only downloaded when requested
+- **User Choice**: Complete control over what gets cached
+- **Clear Indicators**: Always know what's available offline
+- **Easy Management**: Simple tools to control offline content
 
-### Storage Constraints
-- Content is stored in AsyncStorage, which has size limitations
-- Very large articles may be truncated for performance
-- Images are only included if they have proper HTTPS URLs
+### Flexibility
+- **Per-Article Control**: Choose specific articles for offline reading
+- **Global Setting**: Set preference for all future saves
+- **Bulk Operations**: Manage multiple articles at once
+- **Easy Cleanup**: Clear content when no longer needed
 
-### Network Dependency
-- Initial content caching requires an internet connection
-- Content extraction quality depends on the source website structure
-- Some paywalled or restricted content may not be accessible
+## Best Practices
+
+### For Users
+1. **Leave Auto-Download OFF** if you're storage-conscious
+2. **Use Manual Downloads** for articles you definitely want to read offline
+3. **Use Bulk Download** before traveling or when expecting poor connectivity
+4. **Regular Cleanup** of old bookmarks to maintain performance
+
+### For Optimal Experience
+1. **Download on WiFi** to save mobile data
+2. **Check Settings** to understand your current auto-download preference
+3. **Use the Green Icons** to quickly identify offline-ready articles
+4. **Refresh Bookmarks** by switching tabs if content seems outdated
 
 ## Troubleshooting
 
-### "about:///blank" Errors
-This specific error has been addressed with improved HTML cleaning:
-- All `about:` URLs are now aggressively removed during content processing
-- Multiple cleaning passes ensure no problematic URLs remain
-- Automatic fallback to text-only mode if issues persist
+### Article Not Appearing in Bookmarks
+- **Switch to another tab and back** - triggers automatic refresh
+- **Check if save was successful** - look for success message
+- **Ensure you're on the Bookmarks tab** - saved articles only appear there
 
-### Content Not Displaying
-1. Check if the article has the green download icon (content cached successfully)
-2. Try toggling to "Text-Only Mode" using the button in the reader
-3. If content is garbled, the app will automatically show a text version
-4. Some websites may not extract well - this is expected for complex sites
+### Download Not Working
+- **Check internet connection** - required for initial download
+- **Try again** - some websites may have temporary issues
+- **Check if already downloaded** - look for green download icon
 
-### Performance Issues
-- Large bookmarks collections may load slowly
-- Consider clearing old bookmarks periodically
-- The app limits content size to maintain performance
+### Settings Not Saving
+- **Close and reopen the app** if settings don't persist
+- **Check the toggle state** in Settings to confirm your preference
 
-## Future Improvements
+## Future Enhancements
 
-Potential enhancements could include:
-- Integration with readability services for better content extraction
-- Support for offline image caching
-- Export/import functionality for bookmarks
-- Advanced content filtering options
-- Sync across devices
-
-## Debug Features
-
-In the Settings tab, there are debugging tools:
-- **"Test Save Article"**: Tests the saving and caching process
-- **"Test HTML Cleaning"**: Validates the HTML cleaning functionality
-- **Offline Statistics**: Shows how many articles have cached content
+Potential improvements could include:
+- **Download scheduling** for off-peak hours
+- **Content expiration** to automatically clean old articles
+- **Sync across devices** for bookmark consistency
+- **Advanced filtering** for download decisions
+- **Bandwidth optimization** for mobile users

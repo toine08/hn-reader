@@ -202,18 +202,7 @@ export function getLocalTime(value:number){
   return date.toLocaleDateString(undefined, options);
 }
 
-// Format timestamp for display
-export function formatDate(value: number): string {
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  };
-  const date = new Date(value * 1000);
-  return date.toLocaleDateString(undefined, options);
-}
+// Use getLocalTime for date formatting instead of duplicate formatDate function.
 
 // Save article to AsyncStorage - Enhanced version with offline content
 export async function saveArticle(article: Article): Promise<boolean> {
@@ -590,9 +579,11 @@ export async function addOfflineContentToSavedArticle(articleId: number): Promis
 }
 
 // Check if auto offline download is enabled
+export const AUTO_OFFLINE_DOWNLOAD_KEY = "autoOfflineDownload";
+
 export async function isAutoOfflineDownloadEnabled(): Promise<boolean> {
   try {
-    const autoDownload = await AsyncStorage.getItem("autoOfflineDownload");
+    const autoDownload = await AsyncStorage.getItem(AUTO_OFFLINE_DOWNLOAD_KEY);
     return autoDownload === "true";
   } catch (error) {
     console.error("Error checking auto offline download setting:", error);
