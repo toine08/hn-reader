@@ -1,7 +1,6 @@
 // Newsletter service configuration
 // Choose one of the following services to integrate with your newsletter
 
-import Constants from 'expo-constants';
 
 // Helper function to get environment variables in Expo
 const getEnvVar = (key: string): string | undefined => {
@@ -214,15 +213,13 @@ export class NewsletterAPI {
   }
 
   private async unsubscribeMailchimp(email: string): Promise<boolean> {
-    // Implementation for Mailchimp unsubscribe
-    // You'll need to implement this based on Mailchimp's API
-    return true;
+    // Mailchimp unsubscribe API implementation is not yet implemented
+    throw new Error('Mailchimp unsubscribe functionality is not implemented. Please implement the Mailchimp API call or use a different newsletter service.');
   }
 
   private async unsubscribeConvertKit(email: string): Promise<boolean> {
-    // Implementation for ConvertKit unsubscribe
-    // You'll need to implement this based on ConvertKit's API
-    return true;
+    // ConvertKit unsubscribe API implementation is not yet implemented
+    throw new Error('ConvertKit unsubscribe functionality is not implemented. Please implement the ConvertKit API call or use a different newsletter service.');
   }
 
   private async unsubscribeButtondown(email: string): Promise<boolean> {
