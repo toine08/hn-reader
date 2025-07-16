@@ -11,7 +11,10 @@ const commentCache = new Map<number, Comment>();
 // Fetch story IDs with pagination
 export async function getStoryIds(choice: string, page: number) {
   try {
-    const response = await fetch(`https://hacker-news.firebaseio.com/v0/${choice}.json?print=pretty`);
+    const url = `https://hacker-news.firebaseio.com/v0/${choice}.json?print=pretty`;
+    console.log('Fetching story IDs from:', url);
+    const response = await fetch(url);
+    console.log('Response status for story IDs:', response.status);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -53,9 +56,10 @@ const fetchWithRetries = async (url: string, retries = 3): Promise<Response> => 
 // Get single story data
 export async function getStoryData(id: number) {
   try {
-    const response = await fetchWithRetries(
-      `https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`
-    );
+    const url = `https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`;
+    console.log('Fetching story data from:', url);
+    const response = await fetchWithRetries(url);
+    console.log('Response status for story data:', response.status);
     return await response.json();
   } catch (error) {
     console.error('Error fetching story data:', error);
@@ -145,10 +149,11 @@ export async function getAllComments(
 export async function loadMoreComments(
   kids: number[],
   offset: number,
-  limit: number
+  limit: number,
+  depth: number
 ): Promise<Comment[]> {
-  const nextBatch = kids.slice(offset, offset + limit);
-  return getAllComments(nextBatch, 0, 2, limit);
+  const nextBatchIds = kids.slice(offset, offset + limit);
+  return fetchCommentsByIds(nextBatchIds, depth);
 }
 
 // Clear comment cache

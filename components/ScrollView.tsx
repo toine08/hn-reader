@@ -3,9 +3,11 @@ import { View, FlatList, Dimensions } from "react-native";
 import ListItem from "@/components/ListItem";
 import Toast from "@/components/Toast";
 import { Article } from "@/utils/types";
-import { getStories, getStorySaved, removeArticle, saveArticle, addOfflineContentToSavedArticle, isAutoOfflineDownloadEnabled } from "@/utils/lib";
+import { ScrollViewProps as ImportedScrollViewProps } from "@/utils/interfaces";
+import { getStories, getStorySaved, removeArticle, saveArticle, storeData } from "@/utils/lib";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import { useFocusEffect } from "expo-router";
+import { useStories } from "@/hooks/useStories";
 
 const params = {
   initialNumber: 5,
@@ -17,6 +19,7 @@ const VISIBLE_ITEMS = Math.ceil(Dimensions.get('window').height / params.ITEM_HE
 
 interface LocalScrollViewProps {
   story: string;
+  saveOrTrash?: "save" | "trash";
   saveOrTrash?: "save" | "trash";
   onItemSelect?: (item: Article) => void;
   filteredArticles?: Article[];
@@ -276,7 +279,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
 
   return (
     <View className="flex-1 w-full">
-      <FlatList
+      <Animated.FlatList
         className="bg-white dark:bg-black h-full w-fit"
         windowSize={5}
         maxToRenderPerBatch={VISIBLE_ITEMS}
@@ -296,6 +299,15 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
           autoscrollToTopThreshold: 10,
         }}
         getItemLayout={getItemLayout}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      />
+      
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast(prev => ({ ...prev, visible: false }))}
       />
       
       <Toast
