@@ -154,7 +154,7 @@ export default function OfflineReader({ article, onClose }: OfflineReaderProps) 
         {onClose && (
           <TouchableOpacity 
             onPress={onClose}
-            className="mt-4 bg-blue-500 px-6 py-3 rounded-lg"
+            className="mt-4 bg-orange-600 dark:bg-orange-700 px-6 py-3 rounded-lg"
           >
             <Text className="text-white font-medium">Go Back</Text>
           </TouchableOpacity>
@@ -192,7 +192,7 @@ export default function OfflineReader({ article, onClose }: OfflineReaderProps) 
           {article.offlineContentType === 'html' && (
             <TouchableOpacity 
               onPress={() => setTextOnlyMode(!textOnlyMode)}
-              className={`px-3 py-1 rounded-full ${textOnlyMode ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+              className={`px-3 py-1 rounded-full ${textOnlyMode ? 'bg-orange-600 dark:bg-orange-700' : 'bg-zinc-300 dark:bg-zinc-600'}`}
             >
               <Text className={`text-xs font-medium ${textOnlyMode ? 'text-white' : 'text-gray-700 dark:text-gray-300'}`}>
                 {textOnlyMode ? 'Rich' : 'Text'}
@@ -241,7 +241,7 @@ export default function OfflineReader({ article, onClose }: OfflineReaderProps) 
                   let safeContent = offlineContent;
                   
                   // Remove any remaining problematic URLs and patterns
-                  PROBLEMATIC_PATTERNS.forEach(pattern => {
+                  PROBLEMATIC_PATTERNS.forEach((pattern: RegExp) => {
                     safeContent = safeContent.replace(pattern, '');
                   });
                   
@@ -267,8 +267,8 @@ export default function OfflineReader({ article, onClose }: OfflineReaderProps) 
                   if (hasProblematicContent) {
                     return (
                       <View>
-                        <View className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg mb-4">
-                          <Text className="text-blue-700 dark:text-blue-300 text-sm">
+                        <View className="bg-zinc-50 dark:bg-zinc-800 p-3 rounded-lg mb-4">
+                          <Text className="text-zinc-700 dark:text-zinc-300 text-sm">
                             Automatically switched to text-only mode for better readability
                           </Text>
                         </View>
@@ -289,7 +289,7 @@ export default function OfflineReader({ article, onClose }: OfflineReaderProps) 
                 } catch (error) {
                   console.error('Error processing offline content:', error);
                   return (
-                    <View className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-xl border border-yellow-200 dark:border-yellow-800">
+                    <View className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl border border-orange-200 dark:border-orange-800">
                       <Text className="text-yellow-800 dark:text-yellow-200 mb-2 font-semibold">
                         Content Display Issue
                       </Text>

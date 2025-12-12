@@ -201,7 +201,7 @@ export default function SettingsScreen() {
               {offlineStats.total > 0 && (
                 <View className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 mb-3">
                   <View 
-                    className="bg-green-500 h-2 rounded-full"
+                    className="bg-orange-600 dark:bg-orange-700 h-2 rounded-full"
                     style={{ 
                       width: `${(offlineStats.offline / offlineStats.total) * 100}%` 
                     }}
@@ -214,7 +214,7 @@ export default function SettingsScreen() {
               className={`flex-row items-center justify-center py-3 px-4 rounded-lg ${
                 offlineStats.loading 
                   ? "bg-zinc-300 dark:bg-zinc-700" 
-                  : "bg-blue-500 dark:bg-blue-600"
+                  : "bg-orange-600 dark:bg-orange-700"
               }`}
               onPress={downloadAllOfflineContent}
               disabled={offlineStats.loading}
@@ -247,7 +247,7 @@ export default function SettingsScreen() {
 
             <TouchableOpacity
               className={`flex-row items-center justify-between py-4 px-4 rounded-lg ${
-                autoOfflineDownload ? "bg-green-50 dark:bg-green-900" : "bg-zinc-50 dark:bg-zinc-800"
+                autoOfflineDownload ? "bg-orange-50 dark:bg-orange-900/20" : "bg-zinc-50 dark:bg-zinc-800"
               }`}
               onPress={toggleAutoOfflineDownload}
             >

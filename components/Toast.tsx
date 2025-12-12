@@ -61,11 +61,11 @@ export default function Toast({
   const getBackgroundColor = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-500';
+        return 'bg-orange-600 dark:bg-orange-700';
       case 'error':
         return 'bg-red-500';
       default:
-        return 'bg-blue-500';
+        return 'bg-orange-600 dark:bg-orange-700';
     }
   };
 

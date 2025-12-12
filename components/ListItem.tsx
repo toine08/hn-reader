@@ -86,54 +86,61 @@ const ListItem: React.FC<ListItemProps> = memo(({
         </TouchableOpacity>
         
          {/* Buttons Section */}
-         <View className="flex-row gap-3">
+         <View className="flex-row gap-4 items-center">
           {storyType === "bookmarks" ? (
-            // Bookmarks view - Delete button and Download Offline button
-            <View className="flex-row gap-3">
+            // Bookmarks view - Delete icon, Comments icon, and Download icon
+            <View className="flex-row gap-4 items-center">
               <TouchableOpacity
                 onPress={() => onPressTrash?.(item.id)}
-                className="bg-red-600 px-3 py-2 rounded-md"
+                className="p-2"
               >
-                <Text className="text-white text-sm">Delete</Text>
+                <FontAwesome name="trash" size={18} color="#ef4444" />
               </TouchableOpacity>
+              
+              {onPressComments && (
+                <TouchableOpacity 
+                  onPress={onPressComments}
+                  className="p-2"
+                >
+                  <FontAwesome name="comment" size={18} color="#3b82f6" />
+                </TouchableOpacity>
+              )}
               
               {!isOfflineAvailable && (
                 <TouchableOpacity
                   onPress={() => onPressDownloadOffline?.(item.id)}
                   disabled={isDownloadingOffline}
-                  className={`px-3 py-2 rounded-md ${
-                    isDownloadingOffline ? "bg-gray-400" : "bg-blue-600"
-                  }`}
+                  className="p-2"
                 >
-                  <Text className="text-white text-sm">
-                    {isDownloadingOffline ? "Downloading..." : "Download Offline"}
-                  </Text>
+                  <FontAwesome 
+                    name={isDownloadingOffline ? "spinner" : "download"} 
+                    size={18} 
+                    color={isDownloadingOffline ? "#71717a" : "#22c55e"}
+                  />
                 </TouchableOpacity>
               )}
             </View>
           ) : (
-            // Other views - Toggling Save/Delete
+            // Other views - Save/Delete toggle with icon-only style
             <TouchableOpacity
               onPress={handleToggleSave}
-              className={`px-3 py-2 rounded-md ${
-                isSaved ? "bg-red-600" : "bg-orange-600"
-              }`}
+              className="p-2"
             >
-              <Text className="text-white text-sm">
-                {isSaved ? "Delete" : "Save"}
-              </Text>
+              <FontAwesome 
+                name={isSaved ? "trash" : "bookmark"} 
+                size={18} 
+                color={isSaved ? "#ef4444" : "#f97316"} 
+              />
             </TouchableOpacity>
           )}
 
-          {onPressComments && (
+          {/* Comments button for non-bookmarks tabs */}
+          {storyType !== "bookmarks" && onPressComments && (
             <TouchableOpacity 
               onPress={onPressComments}
-              className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 px-3 py-2 rounded-md flex-row items-center"
+              className="p-2"
             >
-              <FontAwesome name="comment" size={14} color="#3b82f6" style={{ marginRight: 6 }} />
-              <Text className="text-blue-600 dark:text-blue-400 text-sm font-medium">
-                {item.descendants && item.descendants > 0 ? `${item.descendants}` : '0'}
-              </Text>
+              <FontAwesome name="comment" size={18} color="#3b82f6" />
             </TouchableOpacity>
           )}
         </View>
@@ -149,7 +156,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
                 {item.text ? item.text.replace(/<[^>]*>/g, '') : ''}
               </Text>
               {item.text && item.text.length > 150 && (
-                <Text className="text-blue-500 mt-1">Read more...</Text>
+                <Text className="text-orange-500 dark:text-orange-400 mt-1">Read more...</Text>
               )}
             </View>
           </TouchableOpacity>
@@ -178,7 +185,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
             </Text>
             <TouchableOpacity 
               onPress={() => setShowOfflineReader(false)}
-              className="p-3 -mr-1 bg-gray-100 dark:bg-gray-800 rounded-full"
+              className="p-3 -mr-1 bg-zinc-100 dark:bg-zinc-700 rounded-full"
             >
               <FontAwesome name="close" size={20} color={colorScheme === 'dark' ? '#fff' : '#000'} />
             </TouchableOpacity>

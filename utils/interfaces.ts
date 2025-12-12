@@ -29,3 +29,8 @@ export interface ListItemProps {
   downloadingOfflineIds?: Set<number>;
   savedArticles: number[];
 }
+
+export interface ScrollViewProps {
+  choice?: string;
+  saveOrTrash?: "save" | "trash";
+}

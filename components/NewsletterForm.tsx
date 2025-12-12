@@ -102,7 +102,7 @@ export default function NewsletterForm({ onSubscriptionSuccess }: NewsletterForm
   }
 
   return (
-    <View className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+    <View className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
       <View className="flex-row items-center mb-2">
         <FontAwesome5 
           name="envelope" 
@@ -120,7 +120,7 @@ export default function NewsletterForm({ onSubscriptionSuccess }: NewsletterForm
       </Text>
 
       {/* Value proposition */}
-      <View className="mb-4 p-3 bg-white dark:bg-zinc-800 rounded-md border border-blue-200 dark:border-blue-700">
+      <View className="mb-4 p-3 bg-white dark:bg-zinc-800 rounded-md border border-orange-200 dark:border-orange-700">
         <Text className="text-xs font-medium text-blue-800 dark:text-blue-200 mb-2">What you'll get:</Text>
         <Text className="text-xs text-blue-700 dark:text-blue-300">• 📰 Weekly top HN stories digest</Text>
         <Text className="text-xs text-blue-700 dark:text-blue-300">• 🚀 Early access to new app features</Text>
@@ -130,11 +130,11 @@ export default function NewsletterForm({ onSubscriptionSuccess }: NewsletterForm
 
       <View className="space-y-3">
         <View>
-          <Text className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
+          <Text className="text-sm font-medium text-orange-800 dark:text-orange-200 mb-1">
             Name (Optional)
           </Text>
           <TextInput
-            className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-blue-300 dark:border-blue-700 rounded-md text-black dark:text-white"
+            className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-orange-300 dark:border-orange-700 rounded-md text-black dark:text-white"
             placeholder="Your name"
             placeholderTextColor={colorScheme === 'dark' ? '#9ca3af' : '#6b7280'}
             value={name}
@@ -144,11 +144,11 @@ export default function NewsletterForm({ onSubscriptionSuccess }: NewsletterForm
         </View>
 
         <View>
-          <Text className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-1">
+          <Text className="text-sm font-medium text-orange-800 dark:text-orange-200 mb-1">
             Email Address *
           </Text>
           <TextInput
-            className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-blue-300 dark:border-blue-700 rounded-md text-black dark:text-white"
+            className="w-full px-3 py-2 bg-white dark:bg-zinc-800 border border-orange-300 dark:border-orange-700 rounded-md text-black dark:text-white"
             placeholder="your@email.com"
             placeholderTextColor={colorScheme === 'dark' ? '#9ca3af' : '#6b7280'}
             value={email}
@@ -164,8 +164,8 @@ export default function NewsletterForm({ onSubscriptionSuccess }: NewsletterForm
           disabled={isLoading}
           className={`w-full py-3 rounded-md flex-row items-center justify-center ${
             isLoading 
-              ? 'bg-blue-300 dark:bg-blue-800' 
-              : 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600'
+              ? 'bg-orange-300 dark:bg-orange-800' 
+              : 'bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-600'
           }`}
         >
           {isLoading ? (

@@ -1,10 +1,18 @@
 import React, { memo, useCallback, useEffect, useState } from "react";
-import { View, FlatList, Dimensions } from "react-native";
+import { View, FlatList, Dimensions, Animated } from "react-native";
 import ListItem from "@/components/ListItem";
 import Toast from "@/components/Toast";
 import { Article } from "@/utils/types";
 import { ScrollViewProps as ImportedScrollViewProps } from "@/utils/interfaces";
-import { getStories, getStorySaved, removeArticle, saveArticle, storeData } from "@/utils/lib";
+import { 
+  getStories, 
+  getStorySaved, 
+  removeArticle, 
+  saveArticle, 
+  storeData, 
+  addOfflineContentToSavedArticle,
+  isAutoOfflineDownloadEnabled 
+} from "@/utils/lib";
 import LoadingPlaceholder from "./LoadingPlaceholder";
 import { useFocusEffect } from "expo-router";
 import { useStories } from "@/hooks/useStories";
@@ -19,7 +27,6 @@ const VISIBLE_ITEMS = Math.ceil(Dimensions.get('window').height / params.ITEM_HE
 
 interface LocalScrollViewProps {
   story: string;
-  saveOrTrash?: "save" | "trash";
   saveOrTrash?: "save" | "trash";
   onItemSelect?: (item: Article) => void;
   filteredArticles?: Article[];
@@ -276,6 +283,11 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
       savedArticles={savedArticleIds}
     />
   ), [saveOrTrash, story, onPressSave, onPressComments, handlePressTrash, handlePressDownloadOffline, downloadingOfflineIds, savedArticleIds]);
+
+  const onScroll = useCallback((event: any) => {
+    // Basic scroll handler for performance optimization
+    // Can be extended later if scroll-based features are needed
+  }, []);
 
   return (
     <View className="flex-1 w-full">

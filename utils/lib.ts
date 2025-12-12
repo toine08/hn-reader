@@ -8,6 +8,19 @@ const MAX_RETRIES = 3;
 const INITIAL_FETCH_LIMIT = 10;
 const commentCache = new Map<number, Comment>();
 
+// Patterns that are problematic for offline content
+export const PROBLEMATIC_PATTERNS = [
+  /javascript:/gi,
+  /data:/gi,
+  /blob:/gi,
+  /about:/gi,
+  /vbscript:/gi,
+  /onload=/gi,
+  /onclick=/gi,
+  /onerror=/gi,
+  /onmouseover=/gi,
+];
+
 // Fetch story IDs with pagination
 export async function getStoryIds(choice: string, page: number) {
   try {
@@ -154,6 +167,48 @@ export async function loadMoreComments(
 ): Promise<Comment[]> {
   const nextBatchIds = kids.slice(offset, offset + limit);
   return fetchCommentsByIds(nextBatchIds, depth);
+}
+
+// Fetch comments by IDs
+export async function fetchCommentsByIds(
+  ids: number[],
+  depth: number = 0
+): Promise<Comment[]> {
+  if (!ids || !ids.length) return [];
+  
+  const promises = ids.map(async id => {
+    if (commentCache.has(id)) return commentCache.get(id);
+
+    try {
+      const response = await fetch(
+        `https://hacker-news.firebaseio.com/v0/item/${id}.json?print=pretty`
+      );
+      const comment = await response.json();
+      
+      if (!comment || comment.deleted || comment.dead) return null;
+      
+      const processedComment: Comment = {
+        ...comment,
+        replies: [],
+        depth,
+        score: comment.score || 0,
+        id: comment.id,
+        text: comment.text || '',
+        by: comment.by || '',
+        time: comment.time || 0,
+        kids: comment.kids || [],
+      };
+      
+      commentCache.set(id, processedComment);
+      return processedComment;
+    } catch (error) {
+      console.error(`Error fetching comment ${id}:`, error);
+      return null;
+    }
+  });
+
+  const comments = await Promise.all(promises);
+  return comments.filter((c): c is Comment => c !== null);
 }
 
 // Clear comment cache

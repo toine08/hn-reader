@@ -130,7 +130,7 @@ export default function Bookmarks() {
             >
               <AntDesign 
                 name="delete" 
-                size={18} 
+                size={20} 
                 color="#ef4444" 
               />
             </TouchableOpacity>
@@ -161,7 +161,7 @@ export default function Bookmarks() {
           </Text>
           <TouchableOpacity 
             onPress={clearSearch}
-            className="mt-4 bg-blue-500 px-4 py-2 rounded-md"
+            className="mt-4 bg-orange-600 dark:bg-orange-700 px-4 py-2 rounded-md"
           >
             <Text className="text-white font-medium">Clear Search</Text>
           </TouchableOpacity>

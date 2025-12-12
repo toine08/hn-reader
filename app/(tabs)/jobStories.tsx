@@ -1,4 +1,8 @@
-import StoryScreen from "@/components/StoryScreen";
+import React, { useState } from "react";
+import { SafeAreaView } from "react-native";
+import { ScrollView } from "@/components/ScrollView";
+import StoryTypeModal from "@/app/modal";
+import { Article } from "@/utils/types";
 
 export default function JobStoriesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
