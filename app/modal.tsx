@@ -7,11 +7,13 @@ import RenderHTML from "react-native-render-html";
 import { useColorScheme } from "@/components/useColorScheme";
 import { StoryTypeModalProps, Comment } from "@/utils/interfaces";
 import { FontAwesome } from "@expo/vector-icons";
+import { useRightHandMode } from "@/contexts/RightHandModeContext";
 
-const CommentItem = memo(({ comment, windowWidth, parentId = '' }: { 
+const CommentItem = memo(({ comment, windowWidth, parentId = '', isRightHandMode }: { 
   comment: Comment; 
   windowWidth: number;
   parentId?: string;
+  isRightHandMode: boolean;
 }) => {
   const colorScheme = useColorScheme();
   const [showReplies, setShowReplies] = useState(true);
@@ -49,10 +51,13 @@ const CommentItem = memo(({ comment, windowWidth, parentId = '' }: {
     <React.Fragment key={uniqueKey}>
       <View 
         className="border-b border-zinc-200 dark:border-zinc-800"
-        style={{ marginLeft: indentation }}
+        style={{ 
+          marginLeft: isRightHandMode ? 0 : indentation,
+          marginRight: isRightHandMode ? indentation : 0
+        }}
       >
         <View className="px-4 py-3">
-          <View className="flex-row justify-between items-center mb-2">
+          <View className={`flex-row ${isRightHandMode ? 'flex-row-reverse' : ''} justify-between items-center mb-2`}>
             <Text className="text-sm font-bold text-black dark:text-white">
               {comment.by || 'Anonymous'}
             </Text>
@@ -88,6 +93,7 @@ const CommentItem = memo(({ comment, windowWidth, parentId = '' }: {
               comment={reply} 
               windowWidth={windowWidth}
               parentId={uniqueKey}
+              isRightHandMode={isRightHandMode}
             />
           ))}
         </View>
@@ -103,6 +109,7 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
   const [isLoading, setIsLoading] = useState(true);
   const [loadedCount, setLoadedCount] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const { isRightHandMode } = useRightHandMode();
   const windowWidth = Dimensions.get('window').width;
 
   useEffect(() => {
@@ -131,7 +138,7 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
     if (isLoadingMore || !kids || loadedCount >= kids.length) return;
     
     setIsLoadingMore(true);
-    const newComments = await loadMoreComments(kids, loadedCount, COMMENTS_PER_PAGE);
+    const newComments = await loadMoreComments(kids, loadedCount, COMMENTS_PER_PAGE, 2);
     setComments(prev => [...prev, ...newComments]);
     setLoadedCount(prev => prev + newComments.length);
     setIsLoadingMore(false);
@@ -152,8 +159,9 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
       comment={comment} 
       windowWidth={windowWidth}
       parentId={`root-${comment.id}`}
+      isRightHandMode={isRightHandMode}
     />
-  ), [windowWidth]);
+  ), [windowWidth, isRightHandMode]);
 
   return (
     <Modal

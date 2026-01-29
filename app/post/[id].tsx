@@ -8,6 +8,7 @@ import RenderHTML from 'react-native-render-html';
 import { FontAwesome } from '@expo/vector-icons';
 import { getAllComments, getLocalTime } from '@/utils/lib';
 import { useColorScheme } from '@/components/useColorScheme';
+import { useRightHandMode } from '@/contexts/RightHandModeContext';
 
 export default function PostPage() {
   const { id } = useLocalSearchParams();
@@ -16,6 +17,7 @@ export default function PostPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { isRightHandMode } = useRightHandMode();
   const windowWidth = Dimensions.get('window').width;
 
   useEffect(() => {
@@ -136,7 +138,7 @@ export default function PostPage() {
             {comments.length > 0 ? (
               comments.map((comment) => (
                 <View key={comment.id} className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-700">
-                  <View className="flex-row justify-between items-center mb-3 pb-2 border-b border-zinc-200 dark:border-zinc-700">
+                  <View className={`flex-row ${isRightHandMode ? 'flex-row-reverse' : ''} justify-between items-center mb-3 pb-2 border-b border-zinc-200 dark:border-zinc-700`}>
                     <Text className="font-semibold text-black dark:text-white">
                       {comment.by || 'Anonymous'}
                     </Text>
