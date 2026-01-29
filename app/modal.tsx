@@ -7,26 +7,28 @@ import RenderHTML from "react-native-render-html";
 import { useColorScheme } from "@/components/useColorScheme";
 import { StoryTypeModalProps, Comment } from "@/utils/interfaces";
 import { FontAwesome } from "@expo/vector-icons";
+import { useRightHandMode } from "@/contexts/RightHandModeContext";
 
-const CommentItem = memo(({ comment, windowWidth, parentId = '' }: { 
+const CommentItem = memo(({ comment, windowWidth, parentId = '', isRightHandMode }: { 
   comment: Comment; 
   windowWidth: number;
   parentId?: string;
+  isRightHandMode: boolean;
 }) => {
   const colorScheme = useColorScheme();
   const [showReplies, setShowReplies] = useState(true);
-  const indentation = (comment.depth || 0) * 16;
+  const indentation = (comment.depth || 0) * 20;
+  const isNestedComment = (comment.depth || 0) > 0;
 
-  // Generate a unique key using timestamp if needed
   const uniqueKey = `${parentId}-${comment.id}-${comment.time || Date.now()}`;
 
   const renderHtmlProps = {
     baseStyle: { 
-      color: colorScheme === 'dark' ? '#fff' : '#000',
-      fontSize: 14,
-      lineHeight: 20,
+      color: colorScheme === 'dark' ? '#e4e4e7' : '#18181b',
+      fontSize: 15,
+      lineHeight: 22,
     },
-    contentWidth: windowWidth - 32 - indentation,
+    contentWidth: windowWidth - 40 - indentation,
     source: { html: comment.text || '' },
     renderersProps: {
       a: {
@@ -48,16 +50,53 @@ const CommentItem = memo(({ comment, windowWidth, parentId = '' }: {
   return (
     <React.Fragment key={uniqueKey}>
       <View 
-        className="border-b border-zinc-200 dark:border-zinc-800"
-        style={{ marginLeft: indentation }}
+        className="border-b border-zinc-100 dark:border-zinc-800/50"
+        style={{ 
+          marginLeft: isRightHandMode ? 0 : indentation,
+          marginRight: isRightHandMode ? indentation : 0,
+          position: 'relative'
+        }}
       >
-        <View className="px-4 py-3">
-          <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-sm font-bold text-black dark:text-white">
+        {/* Vertical connecting line for nested comments */}
+        {isNestedComment && (
+          <View 
+            style={{
+              position: 'absolute',
+              left: isRightHandMode ? undefined : -12,
+              right: isRightHandMode ? -12 : undefined,
+              top: 0,
+              bottom: 0,
+              width: 2,
+              backgroundColor: colorScheme === 'dark' ? '#3f3f46' : '#e4e4e7'
+            }}
+          />
+        )}
+
+        {/* Horizontal connecting line for nested comments */}
+        {isNestedComment && (
+          <View 
+            style={{
+              position: 'absolute',
+              left: isRightHandMode ? undefined : -12,
+              right: isRightHandMode ? -12 : undefined,
+              top: 24,
+              width: 12,
+              height: 2,
+              backgroundColor: colorScheme === 'dark' ? '#3f3f46' : '#e4e4e7'
+            }}
+          />
+        )}
+
+        <View className="px-4 py-4">
+          <View className={`flex-row ${isRightHandMode ? 'flex-row-reverse' : ''} items-center gap-2 mb-2`}>
+            <Text className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               {comment.by || 'Anonymous'}
             </Text>
+            <Text className="text-xs text-zinc-400 dark:text-zinc-500">
+              •
+            </Text>
             <Text className="text-xs text-zinc-500 dark:text-zinc-400">
-              {comment.time ? getLocalTime(comment.time) : 'No date'}
+              {comment.time ? getLocalTime(comment.time) : 'Unknown'}
             </Text>
           </View>
           
@@ -70,10 +109,15 @@ const CommentItem = memo(({ comment, windowWidth, parentId = '' }: {
           {comment.replies && comment.replies.length > 0 && (
             <TouchableOpacity 
               onPress={() => setShowReplies(!showReplies)}
-              className="mt-2"
+              className="mt-3 flex-row items-center"
             >
-              <Text className="text-xs text-blue-500">
-                {showReplies ? 'Hide' : 'Show'} {comment.replies.length} replies
+              <FontAwesome 
+                name={showReplies ? 'chevron-up' : 'chevron-down'} 
+                size={10} 
+                color={colorScheme === 'dark' ? '#3b82f6' : '#2563eb'} 
+              />
+              <Text className="text-xs font-medium text-blue-600 dark:text-blue-400 ml-1.5">
+                {showReplies ? 'Hide' : 'Show'} {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
               </Text>
             </TouchableOpacity>
           )}
@@ -88,6 +132,7 @@ const CommentItem = memo(({ comment, windowWidth, parentId = '' }: {
               comment={reply} 
               windowWidth={windowWidth}
               parentId={uniqueKey}
+              isRightHandMode={isRightHandMode}
             />
           ))}
         </View>
@@ -103,6 +148,7 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
   const [isLoading, setIsLoading] = useState(true);
   const [loadedCount, setLoadedCount] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const { isRightHandMode } = useRightHandMode();
   const windowWidth = Dimensions.get('window').width;
 
   useEffect(() => {
@@ -131,7 +177,7 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
     if (isLoadingMore || !kids || loadedCount >= kids.length) return;
     
     setIsLoadingMore(true);
-    const newComments = await loadMoreComments(kids, loadedCount, COMMENTS_PER_PAGE);
+    const newComments = await loadMoreComments(kids, loadedCount, COMMENTS_PER_PAGE, 2);
     setComments(prev => [...prev, ...newComments]);
     setLoadedCount(prev => prev + newComments.length);
     setIsLoadingMore(false);
@@ -152,8 +198,9 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
       comment={comment} 
       windowWidth={windowWidth}
       parentId={`root-${comment.id}`}
+      isRightHandMode={isRightHandMode}
     />
-  ), [windowWidth]);
+  ), [windowWidth, isRightHandMode]);
 
   return (
     <Modal
@@ -164,39 +211,60 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
       onRequestClose={onClose}
       className="m-0 flex-1 items-center justify-end w-full bg-white dark:bg-black h-60 bg-opacity-100"
     >
-      <View className="bg-white dark:bg-black items-end">
-        <TouchableOpacity className="mt-5 p-10" onPress={onClose}>
-          <FontAwesome name="close" size={24} color={'red'} />
-        </TouchableOpacity>
-      </View>
-      {isLoading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#0284c7" />
-          <Text className="text-lg text-zinc-600 dark:text-zinc-400 mt-4">
-            Loading comments... ({loadedCount}/{kids?.length || 0})
-          </Text>
+      <SafeAreaView className="flex-1 bg-white dark:bg-black">
+        <View className="border-b border-zinc-200 dark:border-zinc-800 pb-3 pt-2">
+          <View className="flex-row items-center justify-between px-4">
+            <Text className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              Comments {kids?.length ? `(${kids.length})` : ''}
+            </Text>
+            <TouchableOpacity 
+              onPress={onClose}
+              className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800"
+            >
+              <Text className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                Done
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      ) : comments.length > 0 ? (
-        <FlatList
-          data={comments}
-          renderItem={renderComment}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
-          windowSize={3}
-          maxToRenderPerBatch={5}
-          updateCellsBatchingPeriod={75}
-          removeClippedSubviews={true}
-          initialNumToRender={5}
-          keyExtractor={item => `comment-${item.id}`}
-        />
-      ) : (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-lg text-zinc-600 dark:text-zinc-400">
-            No comments yet. Come back later!
-          </Text>
-        </View>
-      )}
+
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color="#0284c7" />
+            <Text className="text-base text-zinc-500 dark:text-zinc-400 mt-4">
+              Loading comments...
+            </Text>
+            <Text className="text-sm text-zinc-400 dark:text-zinc-500 mt-1">
+              {loadedCount} of {kids?.length || 0}
+            </Text>
+          </View>
+        ) : comments.length > 0 ? (
+          <FlatList
+            data={comments}
+            renderItem={renderComment}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
+            windowSize={3}
+            maxToRenderPerBatch={5}
+            updateCellsBatchingPeriod={75}
+            removeClippedSubviews={true}
+            initialNumToRender={5}
+            keyExtractor={item => `comment-${item.id}`}
+            className="bg-white dark:bg-black"
+          />
+        ) : (
+          <View className="flex-1 items-center justify-center px-6">
+            <FontAwesome name="comment-o" size={48} color="#a1a1aa" />
+            <Text className="text-lg font-medium text-zinc-600 dark:text-zinc-400 mt-4 text-center">
+              No comments yet
+            </Text>
+            <Text className="text-sm text-zinc-500 dark:text-zinc-500 mt-2 text-center">
+              Be the first to start the discussion!
+            </Text>
+          </View>
+        )}
+      </SafeAreaView>
       <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
     </Modal>
   );

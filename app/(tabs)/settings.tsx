@@ -7,9 +7,11 @@ import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import NewsletterForm from "@/components/NewsletterForm";
 import { getStorySaved, addOfflineContentToSavedArticle } from "@/utils/lib";
 import { Article } from "@/utils/types";
+import { useRightHandMode } from "@/contexts/RightHandModeContext";
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
+  const { isRightHandMode, toggleRightHandMode } = useRightHandMode();
   const [defaultPage, setDefaultPage] = useState<string>("index");
   const [offlineStats, setOfflineStats] = useState<{
     total: number;
@@ -272,6 +274,46 @@ export default function SettingsScreen() {
                 name={autoOfflineDownload ? "toggle-on" : "toggle-off"}
                 size={24}
                 color={autoOfflineDownload ? "#22c55e" : "#6b7280"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Right Hand Mode Setting */}
+          <View className="mb-6 rounded-lg overflow-hidden">
+            <Text className="text-lg font-bold mb-2 text-zinc-800 dark:text-zinc-200">
+              Right-Hand Mode
+            </Text>
+            <Text className="mb-4 text-zinc-600 dark:text-zinc-400 text-sm">
+              Position buttons and comments on the right side for easier one-handed use
+            </Text>
+
+            <TouchableOpacity
+              className={`flex-row items-center justify-between py-4 px-4 rounded-lg ${
+                isRightHandMode ? "bg-orange-50 dark:bg-orange-900/20" : "bg-zinc-50 dark:bg-zinc-800"
+              }`}
+              onPress={toggleRightHandMode}
+            >
+              <View className="flex-row items-center">
+                <FontAwesome5
+                  name="hand-paper"
+                  size={18}
+                  color={isRightHandMode ? "#22c55e" : "#6b7280"}
+                  style={{ marginRight: 12 }}
+                />
+                <View>
+                  <Text className="text-base text-zinc-700 dark:text-zinc-300 font-medium">
+                    Right-Hand Mode
+                  </Text>
+                  <Text className="text-sm text-zinc-500 dark:text-zinc-400">
+                    {isRightHandMode ? "Enabled" : "Disabled"}
+                  </Text>
+                </View>
+              </View>
+
+              <FontAwesome5
+                name={isRightHandMode ? "toggle-on" : "toggle-off"}
+                size={24}
+                color={isRightHandMode ? "#22c55e" : "#6b7280"}
               />
             </TouchableOpacity>
           </View>
