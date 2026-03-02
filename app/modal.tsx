@@ -131,7 +131,7 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
     if (isLoadingMore || !kids || loadedCount >= kids.length) return;
     
     setIsLoadingMore(true);
-    const newComments = await loadMoreComments(kids, loadedCount, COMMENTS_PER_PAGE);
+    const newComments = await loadMoreComments(kids, loadedCount, COMMENTS_PER_PAGE, 0);
     setComments(prev => [...prev, ...newComments]);
     setLoadedCount(prev => prev + newComments.length);
     setIsLoadingMore(false);

@@ -3,7 +3,7 @@
     "name": "hackers new reader",
     "slug": "hn-reader",
     "version": "1.1.0",
-    "sdkVersion": "53.0.0",
+    "sdkVersion": "55.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "hnreader.app",

@@ -310,7 +310,7 @@ export default function SettingsScreen() {
                   <FontAwesome5
                     name="check"
                     size={18}
-                    color={Colors[colorScheme ?? "light"].tint}
+                    color={Colors[colorScheme === 'dark' ? 'dark' : 'light'].tint}
                   />
                 )}
               </TouchableOpacity>

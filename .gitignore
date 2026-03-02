@@ -88,3 +88,4 @@ newsletter/
 .env.local
 .env.production
 .env.development
+.github/SDK55_BREAKING_CHANGES.md

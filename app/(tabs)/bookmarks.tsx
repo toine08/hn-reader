@@ -95,7 +95,7 @@ export default function Bookmarks() {
       <View className="px-4 pt-3 pb-2">
         {/* Search bar */}
         <View className="flex-row items-center bg-neutral-100 dark:bg-zinc-800 rounded-full px-3 py-2">
-          <AntDesign name="search1" size={18} color="#666" />
+          <AntDesign name="search" size={18} color="#666" />
           <TextInput
             className="flex-1 px-2 text-black dark:text-white text-base"
             placeholder="Search bookmarks..."
@@ -116,7 +116,7 @@ export default function Bookmarks() {
             className="ml-1 p-1"
           >
             <AntDesign 
-              name={sortOrder === 'newest' ? 'arrowdown' : 'arrowup'} 
+              name={sortOrder === 'newest' ? 'down' : 'up'} 
               size={18} 
               color="#666" 
             />
@@ -154,7 +154,7 @@ export default function Bookmarks() {
       {/* No results message */}
       {filteredArticles.length === 0 && debouncedSearchTerm && !isSearching && (
         <View className="flex-1 justify-center items-center px-6">
-          <AntDesign name="search1" size={50} color="#ccc" />
+          <AntDesign name="search" size={50} color="#ccc" />
           <Text className="mt-4 text-lg text-gray-500 dark:text-gray-400">No results found</Text>
           <Text className="mt-2 text-center text-gray-500 dark:text-gray-400">
             No bookmarks match "{debouncedSearchTerm}"

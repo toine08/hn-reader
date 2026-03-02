@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState } from "react";
 import { LogBox } from 'react-native';
@@ -33,6 +33,9 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
+  
+  const [showNewsletterModal, setShowNewsletterModal] = useState(false);
+  const [hasCheckedFirstTime, setHasCheckedFirstTime] = useState(false);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
@@ -44,19 +47,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-  const router = useRouter();
-  const [showNewsletterModal, setShowNewsletterModal] = useState(false);
-  const [hasCheckedFirstTime, setHasCheckedFirstTime] = useState(false);
 
   useEffect(() => {
     const checkFirstTime = async () => {
@@ -75,53 +65,56 @@ function RootLayoutNav() {
       }
     };
 
-    checkFirstTime();
-  }, []);
-
-  const handleNewsletterAccept = async () => {
-    try {
-      await AsyncStorage.setItem('hasSeenNewsletterModal', 'true');
-      setShowNewsletterModal(false);
-      // Navigate to settings page
-      router.push('/(tabs)/settings');
-    } catch (error) {
-      console.error('Error saving newsletter modal preference:', error);
+    if (loaded) {
+      checkFirstTime();
     }
+  }, [loaded]);
+
+  const handleNewsletterAccept = () => {
+    AsyncStorage.setItem('hasSeenNewsletterModal', 'true');
+    setShowNewsletterModal(false);
   };
 
-  const handleNewsletterDecline = async () => {
-    try {
-      await AsyncStorage.setItem('hasSeenNewsletterModal', 'true');
-      setShowNewsletterModal(false);
-    } catch (error) {
-      console.error('Error saving newsletter modal preference:', error);
-    }
+  const handleNewsletterDecline = () => {
+    AsyncStorage.setItem('hasSeenNewsletterModal', 'true');
+    setShowNewsletterModal(false);
   };
+
+  if (!loaded) {
+    return null;
+  }
+
+  return (
+    <>
+      <RootLayoutNav />
+      
+      {hasCheckedFirstTime && (
+        <FirstTimeNewsletterModal
+          visible={showNewsletterModal}
+          onAccept={handleNewsletterAccept}
+          onDecline={handleNewsletterDecline}
+        />
+      )}
+    </>
+  );
+}
+
+function RootLayoutNav() {
+  const colorScheme = useColorScheme();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <>
-        <Stack screenOptions={{
-          headerBackTitle: "Back",  // This sets the default back button text for all screens
-        }}>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="post/[id]" options={{ 
-            headerTitle: 'Post',
-            animation: 'slide_from_right',
-            headerBackTitle: "Home"  // This specifically sets the back button text for this screen
-          }} />
-        </Stack>
-        
-        {/* First-time newsletter modal */}
-        {hasCheckedFirstTime && (
-          <FirstTimeNewsletterModal
-            visible={showNewsletterModal}
-            onAccept={handleNewsletterAccept}
-            onDecline={handleNewsletterDecline}
-          />
-        )}
-      </>
+      <Stack screenOptions={{
+        headerBackTitle: "Back",
+      }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="post/[id]" options={{ 
+          headerTitle: 'Post',
+          animation: 'slide_from_right',
+          headerBackTitle: "Home"
+        }} />
+      </Stack>
     </ThemeProvider>
   );
 }

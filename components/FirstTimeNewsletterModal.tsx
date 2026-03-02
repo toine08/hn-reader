@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { useColorScheme } from '@/components/useColorScheme';
+import { useRouter } from 'expo-router';
 
 interface FirstTimeNewsletterModalProps {
   visible: boolean;
@@ -21,7 +22,14 @@ export default function FirstTimeNewsletterModal({
   onDecline,
 }: FirstTimeNewsletterModalProps) {
   const colorScheme = useColorScheme();
+  const router = useRouter();
   const { width, height } = Dimensions.get('window');
+
+  const handleAccept = () => {
+    onAccept();
+    // Navigate to settings page after accepting
+    router.push('/(tabs)/settings');
+  };
 
   return (
     <Modal
@@ -55,19 +63,19 @@ export default function FirstTimeNewsletterModal({
           {/* Benefits */}
           <View className="mb-6 space-y-3">
             <View className="flex-row items-center">
-              <AntDesign name="checkcircle" size={16} color="#10B981" />
+              <AntDesign name="check-circle" size={16} color="#10B981" />
               <Text className="ml-3 text-gray-700 dark:text-gray-300 flex-1">
                 Weekly curated HN stories
               </Text>
             </View>
             <View className="flex-row items-center">
-              <AntDesign name="checkcircle" size={16} color="#10B981" />
+              <AntDesign name="check-circle" size={16} color="#10B981" />
               <Text className="ml-3 text-gray-700 dark:text-gray-300 flex-1">
                 App updates & new features
               </Text>
             </View>
             <View className="flex-row items-center">
-              <AntDesign name="checkcircle" size={16} color="#10B981" />
+              <AntDesign name="check-circle" size={16} color="#10B981" />
               <Text className="ml-3 text-gray-700 dark:text-gray-300 flex-1">
                 Developer insights & trends
               </Text>
@@ -77,7 +85,7 @@ export default function FirstTimeNewsletterModal({
           {/* Action buttons */}
           <View className="space-y-3">
             <TouchableOpacity
-              onPress={onAccept}
+              onPress={handleAccept}
               className="bg-blue-500 py-4 rounded-xl items-center shadow-sm"
             >
               <Text className="text-white font-semibold text-base">
