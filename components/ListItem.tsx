@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import { Article } from "@/utils/types";
 import { FontAwesome } from '@expo/vector-icons';
 import { useColorScheme } from '@/components/useColorScheme';
+import { useRightHandMode } from '@/contexts/RightHandModeContext';
 
 const ListItem: React.FC<ListItemProps> = memo(({
   item,
@@ -22,6 +23,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
 }) => {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { isRightHandMode } = useRightHandMode();
   const [showOfflineReader, setShowOfflineReader] = useState(false);
   const isSaved = savedArticles.includes(item.id);
   const isSelfPost = !item.url && item.text;
@@ -86,10 +88,10 @@ const ListItem: React.FC<ListItemProps> = memo(({
         </TouchableOpacity>
         
          {/* Buttons Section */}
-         <View className="flex-row gap-4 items-center">
+         <View className={`flex-row gap-4 items-center ${isRightHandMode ? 'justify-end' : ''}`}>
           {storyType === "bookmarks" ? (
             // Bookmarks view - Delete icon, Comments icon, and Download icon
-            <View className="flex-row gap-4 items-center">
+            <View className={`flex-row gap-4 items-center ${isRightHandMode ? 'flex-row-reverse' : ''}`}>
               <TouchableOpacity
                 onPress={() => onPressTrash?.(item.id)}
                 className="p-2"

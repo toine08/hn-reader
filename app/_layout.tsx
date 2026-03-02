@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import FirstTimeNewsletterModal from '@/components/FirstTimeNewsletterModal';
+import { RightHandModeProvider } from '@/contexts/RightHandModeContext';
 
 export {
   // Catch any errors thrown by the Layout component.
