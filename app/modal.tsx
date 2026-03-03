@@ -1,5 +1,6 @@
 import { StatusBar } from "expo-status-bar";
-import { Platform, SafeAreaView, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent, Modal, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Platform, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent, Modal, ActivityIndicator } from "react-native";
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { Text, View } from "@/components/Themed";
 import { getAllComments, getLocalTime, loadMoreComments } from "@/utils/lib";
@@ -211,7 +212,7 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
       onRequestClose={onClose}
       className="m-0 flex-1 items-center justify-end w-full bg-white dark:bg-black h-60 bg-opacity-100"
     >
-      <SafeAreaView className="flex-1 bg-white dark:bg-black">
+      <SafeAreaView className="flex-1 bg-white dark:bg-black" edges={['top', 'left', 'right', 'bottom']}>
         <View className="border-b border-zinc-200 dark:border-zinc-800 pb-3 pt-2">
           <View className="flex-row items-center justify-between px-4">
             <Text className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">

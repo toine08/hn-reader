@@ -104,18 +104,20 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{
-        headerBackTitle: "Back",
-      }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="post/[id]" options={{ 
-          headerTitle: 'Post',
-          animation: 'slide_from_right',
-          headerBackTitle: "Home"
-        }} />
-      </Stack>
-    </ThemeProvider>
+    <RightHandModeProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack screenOptions={{
+          headerBackTitle: "Back",
+        }}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="post/[id]" options={{ 
+            headerTitle: 'Post',
+            animation: 'slide_from_right',
+            headerBackTitle: "Home"
+          }} />
+        </Stack>
+      </ThemeProvider>
+    </RightHandModeProvider>
   );
 }

@@ -17,7 +17,7 @@
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-picker/picker": "2.11.4",
-    "@react-navigation/native": "^7.1.31",
+    "@react-navigation/native": "^7.1.28",
     "@sleiv/react-native-opengraph-parser": "^0.1.0",
     "axios": "^1.6.7",
     "expo": "~55.0.4",

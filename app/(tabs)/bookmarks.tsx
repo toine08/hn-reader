@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { SafeAreaView, View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import StoryTypeModal from "../modal";
@@ -90,7 +90,7 @@ export default function Bookmarks() {
   };
 
   return (
-    <SafeAreaView className="flex-1 w-full bg-white dark:bg-zinc-900">
+    <View className="flex-1 w-full bg-white dark:bg-zinc-900">
       {/* Always visible search header */}
       <View className="px-4 pt-3 pb-2">
         {/* Search bar */}
@@ -185,6 +185,6 @@ export default function Bookmarks() {
         item={selectedItem?.id}
         kids={selectedItem?.kids}
       />
-    </SafeAreaView>
+    </View>
   );
 }

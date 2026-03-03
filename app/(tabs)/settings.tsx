@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, SafeAreaView, Linking, ScrollView, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Linking, ScrollView, Alert } from "react-native";
 import { useColorScheme } from "@/components/useColorScheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "@/constants/Colors";
@@ -162,7 +162,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-zinc-900">
+    <View className="flex-1 bg-white dark:bg-zinc-900">
       <ScrollView className="flex-1">
         <View className="p-4">
           <Text className="text-2xl font-bold mb-6 text-black dark:text-white">
@@ -375,6 +375,6 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

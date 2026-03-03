@@ -1,5 +1,6 @@
 import React, { memo, useState } from "react";
-import { View, Text, TouchableOpacity, Modal, SafeAreaView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, TouchableOpacity, Modal } from "react-native";
 import * as WebBrowser from 'expo-web-browser';
 import { ListItemProps } from "@/utils/interfaces";
 import LinkPreview from "./LinkPreview";
@@ -180,7 +181,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
         animationType="slide"
         presentationStyle="fullScreen"
       >
-        <SafeAreaView className="flex-1 bg-white dark:bg-black">
+        <SafeAreaView className="flex-1 bg-white dark:bg-black" edges={['left', 'right', 'bottom']}>
           <View className="flex-row justify-between items-center p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black">
             <Text className="text-lg font-semibold text-black dark:text-white">
               Offline Reader

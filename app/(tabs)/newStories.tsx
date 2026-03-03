@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SafeAreaView } from "react-native";
+import { View } from "react-native";
 import StoryScreen from "@/components/StoryScreen";
 import { ScrollView } from "@/components/ScrollView";
 import StoryTypeModal from "@/app/modal";
@@ -15,7 +15,7 @@ export default function NewStoriesScreen() {
   };
   
   return (
-    <SafeAreaView className="flex-1 w-full bg-white dark:bg-zinc-900">
+    <View className="flex-1 w-full bg-white dark:bg-zinc-900">
       <ScrollView 
         story="newstories"
         saveOrTrash="save"
@@ -27,6 +27,6 @@ export default function NewStoriesScreen() {
         item={selectedItem?.id}
         kids={selectedItem?.kids}
       />
-    </SafeAreaView>
+    </View>
   );
 }
