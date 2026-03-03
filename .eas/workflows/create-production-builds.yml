@@ -8,3 +8,9 @@ jobs:
     type: build # This job type creates a production build for iOS
     params:
       platform: ios
+  submit_ios:
+    name: Submit to TestFlight
+    needs: [build_ios]
+    type: testflight
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}
