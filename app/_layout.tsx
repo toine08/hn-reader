@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useColorScheme } from '@/components/useColorScheme';
 import FirstTimeNewsletterModal from '@/components/FirstTimeNewsletterModal';
 import { RightHandModeProvider } from '@/contexts/RightHandModeContext';
+import { UpdateBanner } from '@/components/UpdateBanner';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -106,6 +107,7 @@ function RootLayoutNav() {
   return (
     <RightHandModeProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <UpdateBanner />
         <Stack screenOptions={{
           headerBackTitle: "Back",
         }}>
