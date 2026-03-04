@@ -1,6 +1,9 @@
 # hn-reader
 
 hn-reader is a Hacker News reader application built with TypeScript and React Native. The project uses Expo for development and builds.
+
+See [CHANGELOG.md](./CHANGELOG.md) for the full list of changes between releases.
+
 Features
 
     Browse the top stories from Hacker News.
