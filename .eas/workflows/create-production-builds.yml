@@ -10,6 +10,7 @@ jobs:
       platform: ios
   submit_ios:
     name: Submit app
+    EXPO_DEBUG: "1"
     needs: [build_ios]
     type: submit
     environment: production
