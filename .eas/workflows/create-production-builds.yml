@@ -12,5 +12,6 @@ jobs:
     name: Submit app
     needs: [build_ios]
     type: submit
+    environment: production
     params:
       build_id: ${{ needs.build_ios.outputs.build_id }}
