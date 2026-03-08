@@ -10,6 +10,7 @@ import { Article } from "@/utils/types";
 import { FontAwesome } from '@expo/vector-icons';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useRightHandMode } from '@/contexts/RightHandModeContext';
+import { useReaderMode } from '@/contexts/ReaderModeContext';
 
 const ListItem: React.FC<ListItemProps> = memo(({
   item,
@@ -25,6 +26,7 @@ const ListItem: React.FC<ListItemProps> = memo(({
   const router = useRouter();
   const colorScheme = useColorScheme();
   const { isRightHandMode } = useRightHandMode();
+  const { isReaderModeEnabled } = useReaderMode();
   const [showOfflineReader, setShowOfflineReader] = useState(false);
   const isSaved = savedArticles.includes(item.id);
   const isSelfPost = !item.url && item.text;
@@ -50,10 +52,10 @@ const ListItem: React.FC<ListItemProps> = memo(({
     if (isSelfPost) {
       router.push(`/post/${item.id}`);
     }
-    // If there's a URL, open it in the browser
+    // If there's a URL, open it in the browser with user's reader mode preference
     else if (item.url) {
       const options = {
-        readerMode: true
+        readerMode: isReaderModeEnabled
       };
       await WebBrowser.openBrowserAsync(item.url, options);
     }

@@ -1,7 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Platform, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent, Modal, ActivityIndicator } from "react-native";
-import React, { useState, useEffect, useCallback, memo } from "react";
+import { Platform, FlatList, Dimensions, TouchableOpacity, Linking, GestureResponderEvent, Modal, ActivityIndicator, Animated } from "react-native";
+import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import { Text, View } from "@/components/Themed";
 import { getAllComments, getLocalTime, loadMoreComments } from "@/utils/lib";
 import RenderHTML from "react-native-render-html";
@@ -9,6 +9,7 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { StoryTypeModalProps, Comment } from "@/utils/interfaces";
 import { FontAwesome } from "@expo/vector-icons";
 import { useRightHandMode } from "@/contexts/RightHandModeContext";
+import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
 
 const CommentItem = memo(({ comment, windowWidth, parentId = '', isRightHandMode }: { 
   comment: Comment; 
@@ -151,7 +152,10 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { isRightHandMode } = useRightHandMode();
   const windowWidth = Dimensions.get('window').width;
+  const windowHeight = Dimensions.get('window').height;
   const insets = useSafeAreaInsets();
+  const translateY = useRef(new Animated.Value(0)).current;
+  const gestureRef = useRef(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -174,6 +178,38 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
 
     return () => { isMounted = false };
   }, [kids]);
+
+  const onGestureEvent = Animated.event(
+    [{ nativeEvent: { translationY: translateY } }],
+    { useNativeDriver: true }
+  );
+
+  const onHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      const { translationY, velocityY } = event.nativeEvent;
+      
+      // Close modal if swiped down more than 100px or with high velocity
+      if (translationY > 100 || velocityY > 500) {
+        Animated.timing(translateY, {
+          toValue: windowHeight,
+          duration: 250,
+          useNativeDriver: true,
+        }).start(() => {
+          onClose();
+          // Reset translateY after modal is closed
+          setTimeout(() => translateY.setValue(0), 100);
+        });
+      } else {
+        // Snap back to original position
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 50,
+          friction: 8,
+        }).start();
+      }
+    }
+  };
 
   const loadMore = async () => {
     if (isLoadingMore || !kids || loadedCount >= kids.length) return;
@@ -207,66 +243,92 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="none"
       presentationStyle="overFullScreen"
       transparent={true}
       onRequestClose={onClose}
       className="m-0 flex-1 items-center justify-end w-full bg-white dark:bg-black h-60 bg-opacity-100"
     >
-      <View className="flex-1 bg-white dark:bg-black" style={{ paddingTop: insets.top }}>
-        <View className="border-b border-zinc-200 dark:border-zinc-800 pb-3 pt-3">
-          <View className="flex-row items-center justify-between px-4">
-            <Text className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              Comments {kids?.length ? `(${kids.length})` : ''}
-            </Text>
-            <TouchableOpacity 
-              onPress={onClose}
-              className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800"
-            >
-              <Text className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                Done
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <PanGestureHandler
+          ref={gestureRef}
+          onGestureEvent={onGestureEvent}
+          onHandlerStateChange={onHandlerStateChange}
+          activeOffsetY={10}
+          failOffsetY={-10}
+        >
+          <Animated.View 
+            className="flex-1 bg-white dark:bg-black" 
+            style={{ 
+              paddingTop: insets.top,
+              transform: [{ 
+                translateY: translateY.interpolate({
+                  inputRange: [0, windowHeight],
+                  outputRange: [0, windowHeight],
+                  extrapolate: 'clamp',
+                })
+              }]
+            }}
+          >
+            <View className="border-b border-zinc-200 dark:border-zinc-800 pb-3 pt-3">
+              <View className="flex-row items-center justify-between px-4">
+                <Text className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                  Comments {kids?.length ? `(${kids.length})` : ''}
+                </Text>
+                <TouchableOpacity 
+                  onPress={onClose}
+                  className="px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800"
+                >
+                  <Text className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Done
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {/* Swipe indicator */}
+              <View className="items-center mt-2">
+                <View className="w-12 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
+              </View>
+            </View>
 
-        {isLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color="#0284c7" />
-            <Text className="text-base text-zinc-500 dark:text-zinc-400 mt-4">
-              Loading comments...
-            </Text>
-            <Text className="text-sm text-zinc-400 dark:text-zinc-500 mt-1">
-              {loadedCount} of {kids?.length || 0}
-            </Text>
-          </View>
-        ) : comments.length > 0 ? (
-          <FlatList
-            data={comments}
-            renderItem={renderComment}
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={renderFooter}
-            windowSize={3}
-            maxToRenderPerBatch={5}
-            updateCellsBatchingPeriod={75}
-            removeClippedSubviews={true}
-            initialNumToRender={5}
-            keyExtractor={item => `comment-${item.id}`}
-            className="bg-white dark:bg-black"
-          />
-        ) : (
-          <View className="flex-1 items-center justify-center px-6">
-            <FontAwesome name="comment-o" size={48} color="#a1a1aa" />
-            <Text className="text-lg font-medium text-zinc-600 dark:text-zinc-400 mt-4 text-center">
-              No comments yet
-            </Text>
-            <Text className="text-sm text-zinc-500 dark:text-zinc-500 mt-2 text-center">
-              Be the first to start the discussion!
-            </Text>
-          </View>
-        )}
-      </View>
+            {isLoading ? (
+              <View className="flex-1 items-center justify-center">
+                <ActivityIndicator size="large" color="#0284c7" />
+                <Text className="text-base text-zinc-500 dark:text-zinc-400 mt-4">
+                  Loading comments...
+                </Text>
+                <Text className="text-sm text-zinc-400 dark:text-zinc-500 mt-1">
+                  {loadedCount} of {kids?.length || 0}
+                </Text>
+              </View>
+            ) : comments.length > 0 ? (
+              <FlatList
+                data={comments}
+                renderItem={renderComment}
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={renderFooter}
+                windowSize={3}
+                maxToRenderPerBatch={5}
+                updateCellsBatchingPeriod={75}
+                removeClippedSubviews={true}
+                initialNumToRender={5}
+                keyExtractor={item => `comment-${item.id}`}
+                className="bg-white dark:bg-black"
+              />
+            ) : (
+              <View className="flex-1 items-center justify-center px-6">
+                <FontAwesome name="comment-o" size={48} color="#a1a1aa" />
+                <Text className="text-lg font-medium text-zinc-600 dark:text-zinc-400 mt-4 text-center">
+                  No comments yet
+                </Text>
+                <Text className="text-sm text-zinc-500 dark:text-zinc-500 mt-2 text-center">
+                  Be the first to start the discussion!
+                </Text>
+              </View>
+            )}
+          </Animated.View>
+        </PanGestureHandler>
+      </GestureHandlerRootView>
       <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
     </Modal>
   );
