@@ -1,7 +1,6 @@
 // Newsletter service configuration
 // Choose one of the following services to integrate with your newsletter
 
-
 // Helper function to get environment variables in Expo
 const getEnvVar = (key: string): string | undefined => {
   // For Expo with EXPO_PUBLIC_ prefix, variables should be available in process.env
@@ -9,7 +8,7 @@ const getEnvVar = (key: string): string | undefined => {
 };
 
 export interface NewsletterConfig {
-  service: 'mailchimp' | 'convertkit' | 'buttondown' | 'substack' | 'custom';
+  service: "mailchimp" | "convertkit" | "localletter" | "substack" | "custom";
   apiKey?: string;
   audienceId?: string;
   baseUrl?: string;
@@ -17,39 +16,16 @@ export interface NewsletterConfig {
 
 // Configuration for different newsletter services
 export const newsletterConfigs: Record<string, NewsletterConfig> = {
-  // Mailchimp configuration
-  mailchimp: {
-    service: 'mailchimp',
-    apiKey: getEnvVar('EXPO_PUBLIC_MAILCHIMP_API_KEY'),
-    audienceId: getEnvVar('EXPO_PUBLIC_MAILCHIMP_AUDIENCE_ID'),
-    baseUrl: 'https://us1.api.mailchimp.com/3.0' // Replace 'us1' with your datacenter
+  // localletter configuration
+  localletter: {
+    service: "localletter",
+    apiKey: getEnvVar("EXPO_PUBLIC_LOCALLETTER_API_KEY"),
+    baseUrl: "https://hnreader.localletter.xyz/api/v1",
   },
-
-  // ConvertKit configuration  
-  convertkit: {
-    service: 'convertkit',
-    apiKey: getEnvVar('EXPO_PUBLIC_CONVERTKIT_API_KEY'),
-    audienceId: getEnvVar('EXPO_PUBLIC_CONVERTKIT_FORM_ID'),
-    baseUrl: 'https://api.convertkit.com/v3'
-  },
-
-  // Buttondown configuration
-  buttondown: {
-    service: 'buttondown',
-    apiKey: getEnvVar('EXPO_PUBLIC_BUTTONDOWN_API_KEY'),
-    baseUrl: 'https://api.buttondown.email/v1'
-  },
-
-  // Custom backend service
-  custom: {
-    service: 'custom',
-    apiKey: getEnvVar('EXPO_PUBLIC_NEWSLETTER_API_KEY'),
-    baseUrl: getEnvVar('EXPO_PUBLIC_NEWSLETTER_API_URL')
-  }
 };
 
 // Select your preferred service here
-export const currentConfig = newsletterConfigs.buttondown; // Using Buttondown for free tier
+export const currentConfig = newsletterConfigs.localletter; // Using Buttondown for free tier
 
 // Newsletter API functions
 export class NewsletterAPI {
@@ -62,21 +38,21 @@ export class NewsletterAPI {
   async subscribe(email: string, name?: string): Promise<boolean> {
     try {
       // Debug logging removed for production safety
-      
+
       switch (this.config.service) {
-        case 'mailchimp':
+        case "mailchimp":
           return await this.subscribeMailchimp(email, name);
-        case 'convertkit':
+        case "convertkit":
           return await this.subscribeConvertKit(email, name);
-        case 'buttondown':
-          return await this.subscribeButtondown(email, name);
-        case 'custom':
+        case "localletter":
+          return await this.subscribeLocalletter(email, name);
+        case "custom":
           return await this.subscribeCustom(email, name);
         default:
-          throw new Error('Unsupported newsletter service');
+          throw new Error("Unsupported newsletter service");
       }
     } catch (error) {
-      console.error('Newsletter subscription error:', error);
+      console.error("Newsletter subscription error:", error);
       return false;
     }
   }
@@ -84,158 +60,153 @@ export class NewsletterAPI {
   async unsubscribe(email: string): Promise<boolean> {
     try {
       switch (this.config.service) {
-        case 'mailchimp':
+        case "mailchimp":
           return await this.unsubscribeMailchimp(email);
-        case 'convertkit':
+        case "convertkit":
           return await this.unsubscribeConvertKit(email);
-        case 'buttondown':
-          return await this.unsubscribeButtondown(email);
-        case 'custom':
+        case "localletter":
+          return await this.unsubscribeLocalletter(email);
+        case "custom":
           return await this.unsubscribeCustom(email);
         default:
-          throw new Error('Unsupported newsletter service');
+          throw new Error("Unsupported newsletter service");
       }
     } catch (error) {
-      console.error('Newsletter unsubscribe error:', error);
+      console.error("Newsletter unsubscribe error:", error);
       return false;
     }
   }
 
-  private async subscribeMailchimp(email: string, name?: string): Promise<boolean> {
+  private async subscribeMailchimp(
+    email: string,
+    name?: string,
+  ): Promise<boolean> {
     if (!this.config.apiKey || !this.config.audienceId) {
-      throw new Error('Mailchimp API key or audience ID not configured');
+      throw new Error("Mailchimp API key or audience ID not configured");
     }
 
     const response = await fetch(
       `${this.config.baseUrl}/lists/${this.config.audienceId}/members`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.config.apiKey}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email_address: email,
-          status: 'subscribed',
+          status: "subscribed",
           merge_fields: name ? { FNAME: name } : {},
         }),
-      }
+      },
     );
 
     return response.ok;
   }
 
-  private async subscribeConvertKit(email: string, name?: string): Promise<boolean> {
+  private async subscribeConvertKit(
+    email: string,
+    name?: string,
+  ): Promise<boolean> {
     if (!this.config.apiKey || !this.config.audienceId) {
-      throw new Error('ConvertKit API key or form ID not configured');
+      throw new Error("ConvertKit API key or form ID not configured");
     }
 
     const response = await fetch(
       `${this.config.baseUrl}/forms/${this.config.audienceId}/subscribe`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           api_key: this.config.apiKey,
           email,
           first_name: name,
         }),
-      }
+      },
     );
 
     return response.ok;
   }
 
-  private async subscribeButtondown(email: string, name?: string): Promise<boolean> {
+  private async subscribeLocalletter(
+    email: string,
+    name?: string,
+  ): Promise<boolean> {
     if (!this.config.apiKey) {
-      throw new Error('Buttondown API key not configured');
+      throw new Error("Localletter API key not configured");
     }
 
     try {
       const response = await fetch(`${this.config.baseUrl}/subscribers`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Token ${this.config.apiKey}`,
-          'Content-Type': 'application/json',
+          Authorization: `Bearer ${this.config.apiKey.trim()}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email_address: email,
-          notes: name ? `Name: ${name}` : '',
-          tags: ['hn-reader-app'], // Tag to identify subscribers from your app
+          email,
+          name,
         }),
       });
 
-      // Handle successful subscription or already subscribed
+      const bodyText = await response.text();
+      let body: any = null;
+
+      try {
+        body = bodyText ? JSON.parse(bodyText) : null;
+      } catch {
+        body = bodyText;
+      }
+
       if (response.ok) {
         return true;
       }
 
-      // Check if user is already subscribed (Buttondown returns 400 for duplicates)
-      if (response.status === 400 || response.status === 422) {
-        const errorData = await response.json();
-        if (errorData.detail && (
-          errorData.detail.includes('already subscribed') ||
-          errorData.detail.includes('already exists')
-        )) {
-          return true; // Treat as success if already subscribed
+      if (
+        response.status === 400 ||
+        response.status === 409 ||
+        response.status === 422
+      ) {
+        const message =
+          typeof body === "object" && body
+            ? `${body.message ?? ""} ${JSON.stringify(body.details ?? "")}`.toLowerCase()
+            : String(body).toLowerCase();
+
+        if (
+          message.includes("already subscribed") ||
+          message.includes("already exists")
+        ) {
+          return true;
         }
       }
 
-      console.error('Buttondown subscription failed:', response.status, await response.text());
+      console.error("Localletter subscription failed:", response.status, body);
       return false;
     } catch (error) {
-      console.error('Buttondown subscription error:', error);
+      console.error("Localletter subscription error:", error);
       return false;
     }
   }
 
-  private async subscribeCustom(email: string, name?: string): Promise<boolean> {
-    if (!this.config.baseUrl) {
-      throw new Error('Custom API URL not configured');
-    }
-
-    const response = await fetch(`${this.config.baseUrl}/subscribe`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` }),
-      },
-      body: JSON.stringify({
-        email,
-        name,
-        source: 'hn-reader-app',
-      }),
-    });
-
-    return response.ok;
-  }
-
-  private async unsubscribeMailchimp(email: string): Promise<boolean> {
-    // Mailchimp unsubscribe API implementation is not yet implemented
-    throw new Error('Mailchimp unsubscribe functionality is not implemented. Please implement the Mailchimp API call or use a different newsletter service.');
-  }
-
-  private async unsubscribeConvertKit(email: string): Promise<boolean> {
-    // ConvertKit unsubscribe API implementation is not yet implemented
-    throw new Error('ConvertKit unsubscribe functionality is not implemented. Please implement the ConvertKit API call or use a different newsletter service.');
-  }
-
-  private async unsubscribeButtondown(email: string): Promise<boolean> {
+  private async unsubscribeLocalletter(email: string): Promise<boolean> {
     if (!this.config.apiKey) {
-      throw new Error('Buttondown API key not configured');
+      throw new Error("Localletter API key not configured");
     }
 
     try {
       // First, get the subscriber ID
-      const listResponse = await fetch(`${this.config.baseUrl}/subscribers?email=${email}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Token ${this.config.apiKey}`,
-          'Content-Type': 'application/json',
+      const listResponse = await fetch(
+        `${this.config.baseUrl}/subscribers?email=${email}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${this.config.apiKey}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       if (!listResponse.ok) {
         return false;
@@ -244,41 +215,25 @@ export class NewsletterAPI {
       const subscribers = await listResponse.json();
       if (subscribers.results && subscribers.results.length > 0) {
         const subscriberId = subscribers.results[0].id;
-        
+
         // Unsubscribe the user
-        const unsubscribeResponse = await fetch(`${this.config.baseUrl}/subscribers/${subscriberId}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Token ${this.config.apiKey}`,
+        const unsubscribeResponse = await fetch(
+          `${this.config.baseUrl}/subscribers/${subscriberId}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Token ${this.config.apiKey}`,
+            },
           },
-        });
+        );
 
         return unsubscribeResponse.ok;
       }
-      
+
       return false;
     } catch (error) {
-      console.error('Buttondown unsubscribe error:', error);
+      console.error("Localletter unsubscribe error:", error);
       return false;
     }
-  }
-
-  private async unsubscribeCustom(email: string): Promise<boolean> {
-    if (!this.config.baseUrl) {
-      throw new Error('Custom API URL not configured');
-    }
-
-    const response = await fetch(`${this.config.baseUrl}/unsubscribe`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(this.config.apiKey && { 'Authorization': `Bearer ${this.config.apiKey}` }),
-      },
-      body: JSON.stringify({
-        email,
-      }),
-    });
-
-    return response.ok;
   }
 }
