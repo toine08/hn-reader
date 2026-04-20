@@ -8,7 +8,7 @@ const getEnvVar = (key: string): string | undefined => {
 };
 
 export interface NewsletterConfig {
-  service: "mailchimp" | "convertkit" | "localletter" | "substack" | "custom";
+  service: "localletter";
   apiKey?: string;
   audienceId?: string;
   baseUrl?: string;
@@ -32,6 +32,10 @@ export class NewsletterAPI {
   private config: NewsletterConfig;
 
   constructor(config: NewsletterConfig = currentConfig) {
+    console.log(
+      "NewsletterAPI constructor, config:",
+      JSON.stringify(config, null, 2),
+    );
     this.config = config;
   }
 
@@ -40,14 +44,8 @@ export class NewsletterAPI {
       // Debug logging removed for production safety
 
       switch (this.config.service) {
-        case "mailchimp":
-          return await this.subscribeMailchimp(email, name);
-        case "convertkit":
-          return await this.subscribeConvertKit(email, name);
         case "localletter":
           return await this.subscribeLocalletter(email, name);
-        case "custom":
-          return await this.subscribeCustom(email, name);
         default:
           throw new Error("Unsupported newsletter service");
       }
@@ -60,14 +58,8 @@ export class NewsletterAPI {
   async unsubscribe(email: string): Promise<boolean> {
     try {
       switch (this.config.service) {
-        case "mailchimp":
-          return await this.unsubscribeMailchimp(email);
-        case "convertkit":
-          return await this.unsubscribeConvertKit(email);
         case "localletter":
           return await this.unsubscribeLocalletter(email);
-        case "custom":
-          return await this.unsubscribeCustom(email);
         default:
           throw new Error("Unsupported newsletter service");
       }
@@ -75,59 +67,6 @@ export class NewsletterAPI {
       console.error("Newsletter unsubscribe error:", error);
       return false;
     }
-  }
-
-  private async subscribeMailchimp(
-    email: string,
-    name?: string,
-  ): Promise<boolean> {
-    if (!this.config.apiKey || !this.config.audienceId) {
-      throw new Error("Mailchimp API key or audience ID not configured");
-    }
-
-    const response = await fetch(
-      `${this.config.baseUrl}/lists/${this.config.audienceId}/members`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.config.apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email_address: email,
-          status: "subscribed",
-          merge_fields: name ? { FNAME: name } : {},
-        }),
-      },
-    );
-
-    return response.ok;
-  }
-
-  private async subscribeConvertKit(
-    email: string,
-    name?: string,
-  ): Promise<boolean> {
-    if (!this.config.apiKey || !this.config.audienceId) {
-      throw new Error("ConvertKit API key or form ID not configured");
-    }
-
-    const response = await fetch(
-      `${this.config.baseUrl}/forms/${this.config.audienceId}/subscribe`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          api_key: this.config.apiKey,
-          email,
-          first_name: name,
-        }),
-      },
-    );
-
-    return response.ok;
   }
 
   private async subscribeLocalletter(
@@ -191,14 +130,10 @@ export class NewsletterAPI {
   }
 
   private async unsubscribeLocalletter(email: string): Promise<boolean> {
-    if (!this.config.apiKey) {
-      throw new Error("Localletter API key not configured");
-    }
-
     try {
       // First, get the subscriber ID
       const listResponse = await fetch(
-        `${this.config.baseUrl}/subscribers?email=${email}`,
+        `${this.config.baseUrl}/subscribers?email=${encodeURIComponent(email)}`,
         {
           method: "GET",
           headers: {
@@ -209,12 +144,19 @@ export class NewsletterAPI {
       );
 
       if (!listResponse.ok) {
+        console.log("GET failed, returning false");
         return false;
       }
 
       const subscribers = await listResponse.json();
-      if (subscribers.results && subscribers.results.length > 0) {
-        const subscriberId = subscribers.results[0].id;
+      console.log("GET response:", subscribers);
+
+      const subscriber =
+        subscribers.subscriber ||
+        (Array.isArray(subscribers) ? subscribers[0] : null);
+
+      if (subscriber && subscriber.id) {
+        const subscriberId = subscriber.id;
 
         // Unsubscribe the user
         const unsubscribeResponse = await fetch(
@@ -232,7 +174,6 @@ export class NewsletterAPI {
 
       return false;
     } catch (error) {
-      console.error("Localletter unsubscribe error:", error);
       return false;
     }
   }
