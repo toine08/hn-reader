@@ -222,7 +222,7 @@ export class NewsletterAPI {
           {
             method: "DELETE",
             headers: {
-              Authorization: `Token ${this.config.apiKey}`,
+              Authorization: `Bearer ${this.config.apiKey}`,
             },
           },
         );
