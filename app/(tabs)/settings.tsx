@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Linking, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Linking,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { useColorScheme } from "@/components/useColorScheme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "@/constants/Colors";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import NewsletterForm from "@/components/NewsletterForm";
 import { getStorySaved, addOfflineContentToSavedArticle } from "@/utils/lib";
-import { Article } from "@/utils/types";
 import { useRightHandMode } from "@/contexts/RightHandModeContext";
 import { useReaderMode } from "@/contexts/ReaderModeContext";
 
@@ -22,9 +28,10 @@ export default function SettingsScreen() {
   }>({
     total: 0,
     offline: 0,
-    loading: false
+    loading: false,
   });
-  const [autoOfflineDownload, setAutoOfflineDownload] = useState<boolean>(false);
+  const [autoOfflineDownload, setAutoOfflineDownload] =
+    useState<boolean>(false);
 
   const pages = [
     { id: "index", title: "Best", icon: "star" },
@@ -49,11 +56,13 @@ export default function SettingsScreen() {
     const loadOfflineStats = async () => {
       try {
         const savedArticles = await getStorySaved();
-        const offlineCount = savedArticles.filter(article => article.isOfflineAvailable).length;
+        const offlineCount = savedArticles.filter(
+          (article) => article.isOfflineAvailable,
+        ).length;
         setOfflineStats({
           total: savedArticles.length,
           offline: offlineCount,
-          loading: false
+          loading: false,
         });
       } catch (error) {
         console.error("Error loading offline stats:", error);
@@ -94,28 +103,31 @@ export default function SettingsScreen() {
   };
 
   const handleEmailPress = () => {
-    const email = 'toto8@duck.com';
-    const subject = 'My honest feedback';
-    const body = "That's an amazing app dude";
+    const email = "toto8@duck.com";
+    const subject = "";
+    const body = "";
     const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
-    Linking.openURL(mailtoLink)
-      .catch(err => console.error('An error occurred', err));
+    Linking.openURL(mailtoLink).catch((err) =>
+      console.error("An error occurred", err),
+    );
   };
 
   const downloadAllOfflineContent = async () => {
     try {
-      setOfflineStats(prev => ({ ...prev, loading: true }));
-      
+      setOfflineStats((prev) => ({ ...prev, loading: true }));
+
       const savedArticles = await getStorySaved();
-      const articlesWithoutOffline = savedArticles.filter(article => !article.isOfflineAvailable);
-      
+      const articlesWithoutOffline = savedArticles.filter(
+        (article) => !article.isOfflineAvailable,
+      );
+
       if (articlesWithoutOffline.length === 0) {
         Alert.alert(
           "All Set!",
-          "All your bookmarked articles already have offline content available."
+          "All your bookmarked articles already have offline content available.",
         );
-        setOfflineStats(prev => ({ ...prev, loading: false }));
+        setOfflineStats((prev) => ({ ...prev, loading: false }));
         return;
       }
 
@@ -128,37 +140,44 @@ export default function SettingsScreen() {
             text: "Download",
             onPress: async () => {
               let successCount = 0;
-              
+
               for (const article of articlesWithoutOffline) {
                 try {
-                  const success = await addOfflineContentToSavedArticle(article.id);
+                  const success = await addOfflineContentToSavedArticle(
+                    article.id,
+                  );
                   if (success) successCount++;
                 } catch (error) {
-                  console.error(`Error downloading content for article ${article.id}:`, error);
+                  console.error(
+                    `Error downloading content for article ${article.id}:`,
+                    error,
+                  );
                 }
               }
-              
+
               // Refresh stats
               const updatedArticles = await getStorySaved();
-              const updatedOfflineCount = updatedArticles.filter(article => article.isOfflineAvailable).length;
-              
+              const updatedOfflineCount = updatedArticles.filter(
+                (article) => article.isOfflineAvailable,
+              ).length;
+
               setOfflineStats({
                 total: updatedArticles.length,
                 offline: updatedOfflineCount,
-                loading: false
+                loading: false,
               });
-              
+
               Alert.alert(
                 "Download Complete",
-                `Successfully downloaded offline content for ${successCount} out of ${articlesWithoutOffline.length} articles.`
+                `Successfully downloaded offline content for ${successCount} out of ${articlesWithoutOffline.length} articles.`,
               );
-            }
-          }
-        ]
+            },
+          },
+        ],
       );
     } catch (error) {
       console.error("Error downloading offline content:", error);
-      setOfflineStats(prev => ({ ...prev, loading: false }));
+      setOfflineStats((prev) => ({ ...prev, loading: false }));
       Alert.alert("Error", "Failed to download offline content.");
     }
   };
@@ -192,7 +211,7 @@ export default function SettingsScreen() {
                   {offlineStats.total}
                 </Text>
               </View>
-              
+
               <View className="flex-row justify-between items-center mb-3">
                 <Text className="text-sm text-zinc-600 dark:text-zinc-400">
                   Available offline:
@@ -204,10 +223,10 @@ export default function SettingsScreen() {
 
               {offlineStats.total > 0 && (
                 <View className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2 mb-3">
-                  <View 
+                  <View
                     className="bg-orange-600 dark:bg-orange-700 h-2 rounded-full"
-                    style={{ 
-                      width: `${(offlineStats.offline / offlineStats.total) * 100}%` 
+                    style={{
+                      width: `${(offlineStats.offline / offlineStats.total) * 100}%`,
                     }}
                   />
                 </View>
@@ -216,8 +235,8 @@ export default function SettingsScreen() {
 
             <TouchableOpacity
               className={`flex-row items-center justify-center py-3 px-4 rounded-lg ${
-                offlineStats.loading 
-                  ? "bg-zinc-300 dark:bg-zinc-700" 
+                offlineStats.loading
+                  ? "bg-zinc-300 dark:bg-zinc-700"
                   : "bg-orange-600 dark:bg-orange-700"
               }`}
               onPress={downloadAllOfflineContent}
@@ -230,14 +249,11 @@ export default function SettingsScreen() {
                 style={{ marginRight: 8 }}
               />
               <Text className="text-white font-semibold">
-                {offlineStats.loading 
-                  ? "Downloading..." 
-                  : "Download All Offline Content"
-                }
+                {offlineStats.loading
+                  ? "Downloading..."
+                  : "Download All Offline Content"}
               </Text>
             </TouchableOpacity>
-
-
           </View>
 
           {/* Auto Offline Download Setting */}
@@ -246,12 +262,15 @@ export default function SettingsScreen() {
               Auto Offline Download
             </Text>
             <Text className="mb-4 text-zinc-600 dark:text-zinc-400 text-sm">
-              Automatically download articles for offline reading when you bookmark them
+              Automatically download articles for offline reading when you
+              bookmark them
             </Text>
 
             <TouchableOpacity
               className={`flex-row items-center justify-between py-4 px-4 rounded-lg ${
-                autoOfflineDownload ? "bg-orange-50 dark:bg-orange-900/20" : "bg-zinc-50 dark:bg-zinc-800"
+                autoOfflineDownload
+                  ? "bg-orange-50 dark:bg-orange-900/20"
+                  : "bg-zinc-50 dark:bg-zinc-800"
               }`}
               onPress={toggleAutoOfflineDownload}
             >
@@ -286,12 +305,15 @@ export default function SettingsScreen() {
               Right-Hand Mode
             </Text>
             <Text className="mb-4 text-zinc-600 dark:text-zinc-400 text-sm">
-              Position buttons and comments on the right side for easier one-handed use
+              Position buttons and comments on the right side for easier
+              one-handed use
             </Text>
 
             <TouchableOpacity
               className={`flex-row items-center justify-between py-4 px-4 rounded-lg ${
-                isRightHandMode ? "bg-orange-50 dark:bg-orange-900/20" : "bg-zinc-50 dark:bg-zinc-800"
+                isRightHandMode
+                  ? "bg-orange-50 dark:bg-orange-900/20"
+                  : "bg-zinc-50 dark:bg-zinc-800"
               }`}
               onPress={toggleRightHandMode}
             >
@@ -326,12 +348,15 @@ export default function SettingsScreen() {
               Reader Mode
             </Text>
             <Text className="mb-4 text-zinc-600 dark:text-zinc-400 text-sm">
-              Open articles in Safari's simplified reader view for distraction-free reading
+              Open articles in Safari's simplified reader view for
+              distraction-free reading
             </Text>
 
             <TouchableOpacity
               className={`flex-row items-center justify-between py-4 px-4 rounded-lg ${
-                isReaderModeEnabled ? "bg-orange-50 dark:bg-orange-900/20" : "bg-zinc-50 dark:bg-zinc-800"
+                isReaderModeEnabled
+                  ? "bg-orange-50 dark:bg-orange-900/20"
+                  : "bg-zinc-50 dark:bg-zinc-800"
               }`}
               onPress={toggleReaderMode}
             >
@@ -372,9 +397,11 @@ export default function SettingsScreen() {
             {pages.map((page) => (
               <TouchableOpacity
                 key={page.id}
-                className={`flex-row items-center justify-between py-4 px-4 border-b border-zinc-100 dark:border-zinc-800 
+                className={`flex-row items-center justify-between py-4 px-4 border-b border-zinc-100 dark:border-zinc-800
                   ${
-                    defaultPage === page.id ? "bg-zinc-100 dark:bg-zinc-800" : ""
+                    defaultPage === page.id
+                      ? "bg-zinc-100 dark:bg-zinc-800"
+                      : ""
                   }`}
                 onPress={() => selectDefaultPage(page.id)}
               >
@@ -394,21 +421,25 @@ export default function SettingsScreen() {
                   <FontAwesome5
                     name="check"
                     size={18}
-                    color={Colors[colorScheme === 'dark' ? 'dark' : 'light'].tint}
+                    color={
+                      Colors[colorScheme === "dark" ? "dark" : "light"].tint
+                    }
                   />
                 )}
               </TouchableOpacity>
             ))}
           </View>
-          
+
           <View>
             <Text className="border-t-2 dark:border-t-orange-600 pt-4 text-lg font-bold mb-2 text-zinc-800 dark:text-zinc-200">
               Thank you !
             </Text>
             <Text className=" mb-4 text-zinc-600 dark:text-zinc-400 text-sm">
-              Thank you for having downloading this app. Please if you enjoy it or not. I would be happy to have your feedback on it. You can give it directly from the appstore or you can reach me at{" "}
-              <Text 
-                className="text-blue-500 underline" 
+              Thank you for having downloading this app. Please if you enjoy it
+              or not. I would be happy to have your feedback on it. You can give
+              it directly from the appstore or you can reach me at{" "}
+              <Text
+                className="text-blue-500 underline"
                 onPress={handleEmailPress}
               >
                 toto8@duck.com
