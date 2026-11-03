@@ -76,8 +76,8 @@ export default function TabLayout() {
         name="topStories"
         options={{
           title: "Trending",
-          tabBarIcon: ({ color }: { color: string }) => (
-            <TabBarIcon name="fire-alt" color={color} />
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="fire-alt" color={String(color)} />
           ),
         }}
       />
@@ -85,8 +85,8 @@ export default function TabLayout() {
         name="newStories"
         options={{
           title: "Latest",
-          tabBarIcon: ({ color }: { color: string }) => (
-            <TabBarIcon name="clock" color={color} />
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="clock" color={String(color)} />
           ),
         }}
       />
@@ -94,8 +94,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Best",
-          tabBarIcon: ({ color }: { color: string }) => (
-            <TabBarIcon name="star" color={color} />
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="star" color={String(color)} />
           ),
         }}
       />
@@ -103,8 +103,8 @@ export default function TabLayout() {
         name="jobStories"
         options={{
           title: "Job board",
-          tabBarIcon: ({ color }: { color: string }) => (
-            <TabBarIcon name="briefcase" color={color} />
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="briefcase" color={String(color)} />
           ),
         }}
       />
@@ -112,8 +112,8 @@ export default function TabLayout() {
         name="bookmarks"
         options={{
           title: "Bookmarks",
-          tabBarIcon: ({ color }: { color: string }) => (
-            <TabBarIcon name="bookmark" color={color} />
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="bookmark" color={String(color)} />
           ),
         }}
       />
@@ -121,8 +121,8 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color }: { color: string }) => (
-            <TabBarIcon name="cog" color={color} />
+          tabBarIcon: ({ color }) => (
+            <TabBarIcon name="cog" color={String(color)} />
           ),
         }}
       />

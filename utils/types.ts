@@ -16,5 +16,8 @@ export interface Article {
   offlineContentType?: 'html' | 'text'; // Type of offline content
   offlineTimestamp?: number;   // When the content was cached
   isOfflineAvailable?: boolean; // Quick flag to check offline availability
+  // Optional Reading Sprint status on locally saved bookmarks
+  readingSprintStatus?: "today" | "later" | "read";
+  readingSprintTodayDate?: string; // Local date used for the three-link daily limit
 }
 

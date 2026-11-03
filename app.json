@@ -3,16 +3,10 @@
     "name": "hackers new reader",
     "slug": "hn-reader",
     "version": "1.2.0",
-    "sdkVersion": "55.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "hnreader.app",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FF6600"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -33,7 +27,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.ico"
+      "favicon": "./assets/images/icon.png"
     },
     "plugins": [
       "expo-router",
@@ -48,7 +42,9 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-web-browser"
+      "expo-notifications",
+      "expo-web-browser",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true

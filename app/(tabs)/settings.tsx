@@ -8,16 +8,17 @@ import {
   Alert,
 } from "react-native";
 import { useColorScheme } from "@/components/useColorScheme";
+import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Colors from "@/constants/Colors";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import NewsletterForm from "@/components/NewsletterForm";
 import { getStorySaved, addOfflineContentToSavedArticle } from "@/utils/lib";
 import { useRightHandMode } from "@/contexts/RightHandModeContext";
 import { useReaderMode } from "@/contexts/ReaderModeContext";
 
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
   const { isRightHandMode, toggleRightHandMode } = useRightHandMode();
   const { isReaderModeEnabled, toggleReaderMode } = useReaderMode();
   const [defaultPage, setDefaultPage] = useState<string>("index");
@@ -190,8 +191,25 @@ export default function SettingsScreen() {
             Settings
           </Text>
 
-          {/* Newsletter Section */}
-          <NewsletterForm />
+          {/* Reading Sprint premium feature */}
+          <View className="mb-6 rounded-lg overflow-hidden">
+            <Text className="text-lg font-bold mb-2 text-zinc-800 dark:text-zinc-200">
+              Reading Sprint
+            </Text>
+            <Text className="mb-4 text-zinc-600 dark:text-zinc-400 text-sm">
+              Organize saved stories into Today, Later, and Read, then focus with a timed session.
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/reading-sprint" as any)}
+              className="flex-row items-center justify-between rounded-lg bg-orange-600 px-4 py-4"
+            >
+              <View className="flex-row items-center">
+                <FontAwesome5 name="stopwatch" size={18} color="white" style={{ marginRight: 12 }} />
+                <Text className="font-semibold text-white">Open Reading Sprint</Text>
+              </View>
+              <FontAwesome5 name="chevron-right" size={14} color="white" />
+            </TouchableOpacity>
+          </View>
 
           {/* Offline Content Management Section */}
           <View className="mb-6 rounded-lg overflow-hidden">

@@ -3,15 +3,25 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { LogBox } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useColorScheme } from '@/components/useColorScheme';
-import FirstTimeNewsletterModal from '@/components/FirstTimeNewsletterModal';
+import FirstLaunchOnboarding from '@/components/FirstLaunchOnboarding';
 import { RightHandModeProvider } from '@/contexts/RightHandModeContext';
 import { ReaderModeProvider } from '@/contexts/ReaderModeContext';
 import { UpdateBanner } from '@/components/UpdateBanner';
+import * as Notifications from 'expo-notifications';
+import { configureRevenueCat } from '@/utils/revenueCat';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -37,9 +47,6 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
   
-  const [showNewsletterModal, setShowNewsletterModal] = useState(false);
-  const [hasCheckedFirstTime, setHasCheckedFirstTime] = useState(false);
-
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
@@ -51,38 +58,6 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  useEffect(() => {
-    const checkFirstTime = async () => {
-      try {
-        const hasSeenModal = await AsyncStorage.getItem('hasSeenNewsletterModal');
-        if (!hasSeenModal) {
-          // Small delay to ensure app is fully loaded
-          setTimeout(() => {
-            setShowNewsletterModal(true);
-          }, 1500);
-        }
-        setHasCheckedFirstTime(true);
-      } catch (error) {
-        console.error('Error checking first time newsletter modal:', error);
-        setHasCheckedFirstTime(true);
-      }
-    };
-
-    if (loaded) {
-      checkFirstTime();
-    }
-  }, [loaded]);
-
-  const handleNewsletterAccept = () => {
-    AsyncStorage.setItem('hasSeenNewsletterModal', 'true');
-    setShowNewsletterModal(false);
-  };
-
-  const handleNewsletterDecline = () => {
-    AsyncStorage.setItem('hasSeenNewsletterModal', 'true');
-    setShowNewsletterModal(false);
-  };
-
   if (!loaded) {
     return null;
   }
@@ -91,19 +66,19 @@ export default function RootLayout() {
     <>
       <RootLayoutNav />
       
-      {hasCheckedFirstTime && (
-        <FirstTimeNewsletterModal
-          visible={showNewsletterModal}
-          onAccept={handleNewsletterAccept}
-          onDecline={handleNewsletterDecline}
-        />
-      )}
+      <FirstLaunchOnboarding ready={loaded} />
     </>
   );
 }
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    void configureRevenueCat().catch((error) => {
+      console.error('RevenueCat initialization failed:', error);
+    });
+  }, []);
 
   return (
     <RightHandModeProvider>
@@ -115,6 +90,15 @@ function RootLayoutNav() {
           }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="reading-sprint" options={{
+              headerTitle: 'Reading Sprint',
+              headerShown: true,
+              headerTransparent: false,
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#18181b' : '#ffffff',
+              },
+              headerTintColor: colorScheme === 'dark' ? '#ffffff' : '#18181b',
+            }} />
             <Stack.Screen name="post/[id]" options={{ 
               headerTitle: 'Post',
               animation: 'slide_from_right',

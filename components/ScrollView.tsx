@@ -301,7 +301,7 @@ export const ScrollView: React.FC<LocalScrollViewProps> = ({
         data={stories}
         keyExtractor={(item: Article) => item.id.toString()}
         renderItem={renderItem}
-        ListFooterComponent={loading ? <LoadingPlaceholder /> : null}
+        ListFooterComponent={loading ? <LoadingPlaceholder /> : undefined}
         onEndReached={loadMoreStories}
         onEndReachedThreshold={0.2}
         refreshing={story !== 'bookmarks' && refreshing}

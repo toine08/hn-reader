@@ -242,12 +242,12 @@ export async function fetchArticle(id: number) {
 
 export async function clearAll() {
   try {
-    await AsyncStorage.clear()
-  } catch(e) {
-    // clear error
+    // The Bookmarks screen's "clear all" action must not erase unrelated
+    // settings or Reading Sprint state stored in AsyncStorage.
+    await AsyncStorage.removeItem('savedArticles');
+  } catch (e) {
+    console.error('Error clearing saved articles:', e);
   }
-
-  console.log('Done.')
 }
 
 export function getLocalTime(value:number){
