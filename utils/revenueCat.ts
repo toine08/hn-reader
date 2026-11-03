@@ -78,6 +78,16 @@ export async function getRevenueCatState(): Promise<RevenueCatState> {
   };
 }
 
+export async function trackReadingSprintPaywallImpression(): Promise<void> {
+  const configured = await configureRevenueCat();
+  if (!configured) return;
+
+  const purchases = await loadPurchasesClient();
+  if (!purchases) return;
+
+  await purchases.trackCustomPaywallImpression({ paywallId: "reading_sprint" });
+}
+
 export async function purchaseReadingSprint(
   purchasePackage: PurchasesPackage,
 ): Promise<boolean> {

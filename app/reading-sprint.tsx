@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -11,9 +11,11 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import * as WebBrowser from "expo-web-browser";
+import { StatusBar } from "expo-status-bar";
 import { useFocusEffect, useRouter } from "expo-router";
 import type { PurchasesPackage } from "react-native-purchases";
 import { Article } from "@/utils/types";
+import { useColorScheme } from "@/components/useColorScheme";
 import {
   clearReadingSprintSession,
   getReadingSprintDailyCount,
@@ -32,6 +34,7 @@ import {
   purchaseReadingSprint,
   RevenueCatState,
   restoreReadingSprintPurchases,
+  trackReadingSprintPaywallImpression,
 } from "@/utils/revenueCat";
 
 const SESSION_LENGTHS = [5, 15, 30] as const;
@@ -64,6 +67,7 @@ function planPackage(
 
 export default function ReadingSprintScreen() {
   const router = useRouter();
+  const colorScheme = useColorScheme();
   const [articles, setArticles] = useState<Article[]>([]);
   const [tab, setTab] = useState<SprintTab>("today");
   const [dailyCount, setDailyCount] = useState(0);
@@ -75,6 +79,7 @@ export default function ReadingSprintScreen() {
   const [sessionLength, setSessionLength] = useState<SessionLength>(15);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [reminderEnabled, setReminderEnabled] = useState(false);
+  const paywallImpressionTracked = useRef(false);
 
   const refreshLocalState = useCallback(async () => {
     const [savedArticles, count, storedSession, reminderId] = await Promise.all([
@@ -103,6 +108,7 @@ export default function ReadingSprintScreen() {
   useFocusEffect(
     useCallback(() => {
       let active = true;
+      paywallImpressionTracked.current = false;
       setLoading(true);
       void Promise.all([refreshLocalState(), refreshRevenueCat()])
         .catch((error) => {
@@ -116,6 +122,22 @@ export default function ReadingSprintScreen() {
       };
     }, [refreshLocalState, refreshRevenueCat]),
   );
+
+  useEffect(() => {
+    if (
+      loading ||
+      revenueCat.isPremium ||
+      !isRevenueCatAvailable() ||
+      paywallImpressionTracked.current
+    ) {
+      return;
+    }
+
+    paywallImpressionTracked.current = true;
+    void trackReadingSprintPaywallImpression().catch((error) => {
+      console.error("Error tracking RevenueCat paywall impression:", error);
+    });
+  }, [loading, revenueCat.isPremium]);
 
   useEffect(() => {
     if (!session) {
@@ -349,20 +371,25 @@ export default function ReadingSprintScreen() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white dark:bg-zinc-900">
-        <ActivityIndicator size="large" color="#f97316" />
-      </View>
+      <>
+        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+        <View className="flex-1 items-center justify-center bg-white dark:bg-zinc-900">
+          <ActivityIndicator size="large" color="#f97316" />
+        </View>
+      </>
     );
   }
 
   if (!revenueCat.isPremium) {
     const canOfferPurchase = revenueCat.configured && !revenueCatError;
     return (
-      <ScrollView className="flex-1 bg-white px-5 py-6 dark:bg-zinc-900">
-        <Text className="text-3xl font-bold text-zinc-900 dark:text-white">
-          Reading Sprint
-        </Text>
-        <Text className="mt-2 text-base text-zinc-600 dark:text-zinc-300">
+      <>
+        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+        <ScrollView
+          className="flex-1 bg-white px-5 py-6 dark:bg-zinc-900"
+          contentInsetAdjustmentBehavior="automatic"
+        >
+        <Text className="text-base text-zinc-600 dark:text-zinc-300">
           A focused queue for your saved stories, with daily reading sessions.
         </Text>
         <View className="mt-6 rounded-2xl bg-orange-50 p-5 dark:bg-orange-900/20">
@@ -378,7 +405,7 @@ export default function ReadingSprintScreen() {
             </Text>
           )}
           {revenueCatError ? (
-            <Text className="mt-3 text-sm text-red-600">{revenueCatError}</Text>
+            <Text className="mt-3 text-sm text-red-600 dark:text-red-400">{revenueCatError}</Text>
           ) : null}
           {canOfferPurchase && !monthlyPackage && !annualPackage && (
             <Text className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
@@ -417,15 +444,18 @@ export default function ReadingSprintScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+        </ScrollView>
+      </>
     );
   }
 
   return (
-    <ScrollView className="flex-1 bg-white px-4 py-5 dark:bg-zinc-900">
-      <Text className="text-3xl font-bold text-zinc-900 dark:text-white">
-        Reading Sprint
-      </Text>
+    <>
+    <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+    <ScrollView
+      className="flex-1 bg-white px-4 py-5 dark:bg-zinc-900"
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <Text className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
         Your queue is stored on this device. Bookmarked stories stay available in the free reader.
       </Text>
@@ -486,7 +516,7 @@ export default function ReadingSprintScreen() {
             {reminderEnabled ? "On · tap to turn off" : "Optional · tap to turn on"}
           </Text>
         </View>
-        <Text className="font-semibold text-orange-600">
+        <Text className="font-semibold text-orange-600 dark:text-orange-400">
           {reminderEnabled ? "On" : "Off"}
         </Text>
       </TouchableOpacity>
@@ -524,7 +554,7 @@ export default function ReadingSprintScreen() {
             </Text>
             {tab === "saved" && (
               <TouchableOpacity onPress={() => router.push("/(tabs)/bookmarks")} className="mt-4">
-                <Text className="font-semibold text-orange-600">Open Bookmarks</Text>
+                <Text className="font-semibold text-orange-600 dark:text-orange-400">Open Bookmarks</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -536,5 +566,6 @@ export default function ReadingSprintScreen() {
         </Text>
       </TouchableOpacity>
     </ScrollView>
+    </>
   );
 }
