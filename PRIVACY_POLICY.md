@@ -1,6 +1,6 @@
 # Privacy Policy for Hacker News Reader
 
-*Last updated: July 14, 2025*
+*Last updated: November 3, 2026*
 
 ## Overview
 
@@ -9,25 +9,17 @@ Hacker News Reader is committed to protecting your privacy. This privacy policy 
 ## Data Collection and Usage
 
 ### What We Collect
-- We do **not** collect any personal information for app functionality
-- We do **not** track your usage
+- We do **not** require an account or ask for your name or email to use the app
+- We do **not** store your Hacker News browsing history on our servers
+- We use RevenueCat to process and manage in-app subscriptions. RevenueCat receives purchase and subscription information, a randomly generated app user identifier, and technical information needed to provide its service.
+- When you view the Reading Sprint subscription offer, the app sends RevenueCat a paywall impression event for subscription analytics. This event is associated with the RevenueCat app user identifier.
 - We do **not** store your browsing history
-- We do **not** collect analytics
 - We do **not** have any user accounts
-
-### Newsletter Subscription (Optional)
-- If you choose to subscribe to our newsletter, we collect:
-  - Your email address (required)
-  - Your name (optional)
-- This information is stored with our newsletter service provider
-- Newsletter data is handled separately from app data
-- You can unsubscribe at any time
 
 ### Local Data Storage
 - Bookmarks are stored **only** on your device
 - Reading preferences (like dark/light mode) are stored **only** on your device
-- Newsletter subscription status is stored locally for app functionality
-- No personal data is synchronized with external servers except for newsletter functionality
+- Subscription and purchase information is handled by Apple and RevenueCat to support purchases, subscription status, and restore purchases
 
 ### API Usage
 - The app connects directly to the official Hacker News API
@@ -36,13 +28,13 @@ Hacker News Reader is committed to protecting your privacy. This privacy policy 
 
 ## Third-Party Services
 - The app opens links in an in-app browser
-- Newsletter subscriptions are processed by third-party newsletter services (Localletter)
-- Newsletter service providers have their own privacy policies
+- In-app subscriptions are processed through Apple's App Store and RevenueCat. RevenueCat's [Privacy Policy](https://www.revenuecat.com/privacy) explains how it handles information processed through its services.
+- The app connects to RevenueCat to retrieve subscription offerings and status, process purchases and restores, and record Reading Sprint paywall impressions.
 - We have no control over and assume no responsibility for the content, privacy policies, or practices of any third-party sites or services you access through links
 
 ## Data Security
-- Since all data is stored locally on your device, security is managed by your device's built-in security features
-- No additional security measures are needed as we don't collect or store any data on external servers
+- Bookmarks and reading preferences are stored locally on your device
+- Purchase and subscription data are handled by Apple and RevenueCat under their own security and privacy practices
 
 ## Changes to This Policy
 We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.
@@ -51,7 +43,3 @@ We may update our Privacy Policy from time to time. We will notify you of any ch
 If you have any questions about this Privacy Policy, please contact us:
 - Email: toto8@duck.com
 - Twitter: @togido_
-
----
-
-Would you like me to adjust any part of this privacy policy or add more specific details about any section?

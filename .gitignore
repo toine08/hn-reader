@@ -80,8 +80,6 @@ yarn-error.*
 
 # @end expo-cli
 
-# Newsletter - Business sensitive information
-newsletter/
 .env
 
 # Additional environment files

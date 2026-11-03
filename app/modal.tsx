@@ -4,7 +4,7 @@ import { Platform, FlatList, Dimensions, TouchableOpacity, Linking, GestureRespo
 import React, { useState, useEffect, useCallback, memo, useRef } from "react";
 import { Text, View } from "@/components/Themed";
 import { getAllComments, getLocalTime, loadMoreComments } from "@/utils/lib";
-import RenderHTML from "react-native-render-html";
+import RenderHTML from "@native-html/render";
 import { useColorScheme } from "@/components/useColorScheme";
 import { StoryTypeModalProps, Comment } from "@/utils/interfaces";
 import { FontAwesome } from "@expo/vector-icons";

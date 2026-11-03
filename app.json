@@ -14,7 +14,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.toto8.hackers-news-reader",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIViewControllerBasedStatusBarAppearance": true
       }
     },
     "android": {

@@ -7,6 +7,7 @@ import LinkPreview from "./LinkPreview";
 import OfflineReader from "./OfflineReader";
 import { useRouter } from "expo-router";
 import { Article } from "@/utils/types";
+import { decode } from "html-entities";
 import { FontAwesome } from '@expo/vector-icons';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useRightHandMode } from '@/contexts/RightHandModeContext';
@@ -30,6 +31,9 @@ const ListItem: React.FC<ListItemProps> = memo(({
   const [showOfflineReader, setShowOfflineReader] = useState(false);
   const isSaved = savedArticles.includes(item.id);
   const isSelfPost = !item.url && item.text;
+  const selfPostPreview = item.text
+    ? decode(item.text.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim()
+    : "";
   const isOfflineAvailable = (item as Article).isOfflineAvailable;
   const isDownloadingOffline = downloadingOfflineIds?.has(item.id) || false;
 
@@ -158,9 +162,9 @@ const ListItem: React.FC<ListItemProps> = memo(({
                 className="text-sm text-black dark:text-white" 
                 numberOfLines={3}
               >
-                {item.text ? item.text.replace(/<[^>]*>/g, '') : ''}
+                {selfPostPreview}
               </Text>
-              {item.text && item.text.length > 150 && (
+              {selfPostPreview.length > 150 && (
                 <Text className="text-orange-500 dark:text-orange-400 mt-1">Read more...</Text>
               )}
             </View>

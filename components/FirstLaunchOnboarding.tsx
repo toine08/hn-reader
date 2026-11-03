@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 
-const ONBOARDING_KEY = "hasSeenNewsletterModal";
+const ONBOARDING_KEY = "hasSeenFirstLaunchOnboarding";
 
 export default function FirstLaunchOnboarding({ ready }: { ready: boolean }) {
   const router = useRouter();
@@ -16,7 +16,12 @@ export default function FirstLaunchOnboarding({ ready }: { ready: boolean }) {
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     void AsyncStorage.getItem(ONBOARDING_KEY)
-      .then((hasSeen: string | null) => {
+      .then(async (hasSeen: string | null) => {
+        // Preserve onboarding state from older versions that used the newsletter key.
+        if (!hasSeen && (await AsyncStorage.getItem("hasSeenNewsletterModal"))) {
+          await AsyncStorage.setItem(ONBOARDING_KEY, "true");
+          hasSeen = "true";
+        }
         if (active && !hasSeen) {
           timer = setTimeout(() => setVisible(true), 600);
         }

@@ -3,7 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Article } from '@/utils/types';
-import RenderHTML from 'react-native-render-html';
+import RenderHTML from '@native-html/render';
 import { FontAwesome } from '@expo/vector-icons';
 import { getLocalTime, getOfflineContent, PROBLEMATIC_PATTERNS } from '@/utils/lib';
 import { useColorScheme } from '@/components/useColorScheme';

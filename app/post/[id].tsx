@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { fetchItem } from '@/utils/lib';
 import { Article } from '@/utils/types';
 import { Comment } from '@/utils/interfaces';
-import RenderHTML from 'react-native-render-html';
+import RenderHTML from '@native-html/render';
 import { FontAwesome } from '@expo/vector-icons';
 import { getAllComments, getLocalTime } from '@/utils/lib';
 import { useColorScheme } from '@/components/useColorScheme';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import RenderHTML from 'react-native-render-html';
+import RenderHTML from '@native-html/render';
 
 type PostContentProps = {
   content: string;
