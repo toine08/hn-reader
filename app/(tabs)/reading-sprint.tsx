@@ -40,6 +40,7 @@ import {
 const SESSION_LENGTHS = [5, 15, 30] as const;
 type SessionLength = (typeof SESSION_LENGTHS)[number];
 type SprintTab = ReadingSprintStatus | "saved";
+type PurchaseAction = "monthly" | "annual" | "restore";
 
 const initialRevenueCatState: RevenueCatState = {
   configured: false,
@@ -74,7 +75,7 @@ export default function ReadingSprintScreen() {
   const [loading, setLoading] = useState(true);
   const [revenueCat, setRevenueCat] = useState(initialRevenueCatState);
   const [revenueCatError, setRevenueCatError] = useState("");
-  const [purchaseBusy, setPurchaseBusy] = useState(false);
+  const [purchaseBusy, setPurchaseBusy] = useState<PurchaseAction | null>(null);
   const [session, setSession] = useState<ReadingSprintSession | null>(null);
   const [sessionLength, setSessionLength] = useState<SessionLength>(15);
   const [remainingSeconds, setRemainingSeconds] = useState(0);
@@ -281,8 +282,11 @@ export default function ReadingSprintScreen() {
     }
   };
 
-  const handlePurchase = async (item: PurchasesPackage) => {
-    setPurchaseBusy(true);
+  const handlePurchase = async (
+    item: PurchasesPackage,
+    plan: "monthly" | "annual",
+  ) => {
+    setPurchaseBusy(plan);
     try {
       const isPremium = await purchaseReadingSprint(item);
       await refreshRevenueCat();
@@ -293,12 +297,12 @@ export default function ReadingSprintScreen() {
       console.error("Reading Sprint purchase failed:", error);
       Alert.alert("Purchase unavailable", "The store could not complete the purchase. Try again later.");
     } finally {
-      setPurchaseBusy(false);
+      setPurchaseBusy(null);
     }
   };
 
   const handleRestore = async () => {
-    setPurchaseBusy(true);
+    setPurchaseBusy("restore");
     try {
       const restored = await restoreReadingSprintPurchases();
       await refreshRevenueCat();
@@ -312,7 +316,7 @@ export default function ReadingSprintScreen() {
       console.error("Could not restore Reading Sprint purchases:", error);
       Alert.alert("Restore unavailable", "Purchases could not be restored right now.");
     } finally {
-      setPurchaseBusy(false);
+      setPurchaseBusy(null);
     }
   };
 
@@ -414,33 +418,33 @@ export default function ReadingSprintScreen() {
           )}
           {monthlyPackage && (
             <TouchableOpacity
-              disabled={purchaseBusy}
-              onPress={() => void handlePurchase(monthlyPackage)}
+              disabled={purchaseBusy !== null}
+              onPress={() => void handlePurchase(monthlyPackage, "monthly")}
               className="mt-5 rounded-lg bg-orange-600 px-4 py-3"
             >
               <Text className="text-center font-semibold text-white">
-                {purchaseBusy ? "Please wait…" : `Monthly · ${monthlyPackage.product.priceString}`}
+                {purchaseBusy === "monthly" ? "Processing…" : `Monthly · ${monthlyPackage.product.priceString}`}
               </Text>
             </TouchableOpacity>
           )}
           {annualPackage && (
             <TouchableOpacity
-              disabled={purchaseBusy}
-              onPress={() => void handlePurchase(annualPackage)}
+              disabled={purchaseBusy !== null}
+              onPress={() => void handlePurchase(annualPackage, "annual")}
               className="mt-3 rounded-lg bg-orange-600 px-4 py-3"
             >
               <Text className="text-center font-semibold text-white">
-                {purchaseBusy ? "Please wait…" : `Annual · ${annualPackage.product.priceString}`}
+                {purchaseBusy === "annual" ? "Processing…" : `Annual · ${annualPackage.product.priceString}`}
               </Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
-            disabled={purchaseBusy || !canOfferPurchase}
+            disabled={purchaseBusy !== null || !canOfferPurchase}
             onPress={() => void handleRestore()}
             className="mt-4 py-3"
           >
             <Text className="text-center font-medium text-orange-700 dark:text-orange-300">
-              Restore purchases
+              {purchaseBusy === "restore" ? "Restoring…" : "Restore purchases"}
             </Text>
           </TouchableOpacity>
         </View>

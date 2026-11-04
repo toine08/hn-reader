@@ -33,9 +33,6 @@ export default function TabLayout() {
             case 'index':
               router.replace({pathname: "/(tabs)"});
               break;
-            case 'jobStories':
-              router.replace({pathname: "/(tabs)/jobStories"});
-              break;
             case 'bookmarks':
               router.replace({pathname: "/(tabs)/bookmarks"});
               break;
@@ -100,11 +97,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="jobStories"
+        name="reading-sprint"
         options={{
-          title: "Job board",
+          title: "Reading Sprint",
           tabBarIcon: ({ color }) => (
-            <TabBarIcon name="briefcase" color={String(color)} />
+            <TabBarIcon name="stopwatch" color={String(color)} />
           ),
         }}
       />

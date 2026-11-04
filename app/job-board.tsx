@@ -15,12 +15,12 @@ export default function JobStoriesScreen() {
 
   return (
     <View className="flex-1 w-full bg-white dark:bg-zinc-900">
-      <ScrollView 
+      <ScrollView
         story="jobstories"
         saveOrTrash="save"
         onItemSelect={handlePressComments}
       />
-      <StoryTypeModal 
+      <StoryTypeModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         item={selectedItem?.id}

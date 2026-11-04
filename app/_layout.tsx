@@ -90,10 +90,9 @@ function RootLayoutNav() {
           }}>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="reading-sprint" options={{
-              headerTitle: 'Reading Sprint',
+            <Stack.Screen name="job-board" options={{
+              headerTitle: 'Job board',
               headerShown: true,
-              headerTransparent: false,
               headerStyle: {
                 backgroundColor: colorScheme === 'dark' ? '#18181b' : '#ffffff',
               },

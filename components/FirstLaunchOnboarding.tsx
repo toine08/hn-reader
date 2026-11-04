@@ -43,7 +43,7 @@ export default function FirstLaunchOnboarding({ ready }: { ready: boolean }) {
     } catch (error) {
       console.error("Could not save onboarding state:", error);
     }
-    if (showPremium) router.push("/reading-sprint");
+    if (showPremium) router.push("/(tabs)/reading-sprint");
   };
 
   return (

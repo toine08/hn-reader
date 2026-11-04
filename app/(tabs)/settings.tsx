@@ -38,7 +38,6 @@ export default function SettingsScreen() {
     { id: "index", title: "Best", icon: "star" },
     { id: "topStories", title: "Trending", icon: "fire-alt" },
     { id: "newStories", title: "Latest", icon: "clock" },
-    { id: "jobStories", title: "Job board", icon: "briefcase" },
     { id: "bookmarks", title: "Bookmarks", icon: "bookmark" },
   ];
 
@@ -46,8 +45,11 @@ export default function SettingsScreen() {
     const loadDefaultPage = async () => {
       try {
         const storedPage = await AsyncStorage.getItem("defaultPage");
-        if (storedPage) {
+        if (storedPage && pages.some((page) => page.id === storedPage)) {
           setDefaultPage(storedPage);
+        } else if (storedPage) {
+          await AsyncStorage.setItem("defaultPage", "index");
+          setDefaultPage("index");
         }
       } catch (error) {
         console.error("Error loading default page setting:", error);
@@ -190,26 +192,6 @@ export default function SettingsScreen() {
           <Text className="text-2xl font-bold mb-6 text-black dark:text-white">
             Settings
           </Text>
-
-          {/* Reading Sprint premium feature */}
-          <View className="mb-6 rounded-lg overflow-hidden">
-            <Text className="text-lg font-bold mb-2 text-zinc-800 dark:text-zinc-200">
-              Reading Sprint
-            </Text>
-            <Text className="mb-4 text-zinc-600 dark:text-zinc-400 text-sm">
-              Organize saved stories into Today, Later, and Read, then focus with a timed session.
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push("/reading-sprint" as any)}
-              className="flex-row items-center justify-between rounded-lg bg-orange-600 px-4 py-4"
-            >
-              <View className="flex-row items-center">
-                <FontAwesome5 name="stopwatch" size={18} color="white" style={{ marginRight: 12 }} />
-                <Text className="font-semibold text-white">Open Reading Sprint</Text>
-              </View>
-              <FontAwesome5 name="chevron-right" size={14} color="white" />
-            </TouchableOpacity>
-          </View>
 
           {/* Offline Content Management Section */}
           <View className="mb-6 rounded-lg overflow-hidden">
@@ -404,6 +386,33 @@ export default function SettingsScreen() {
           </View>
 
           {/* Default Page Section */}
+          <View className="mb-6 rounded-lg overflow-hidden">
+            <Text className="text-lg font-bold mb-2 text-zinc-800 dark:text-zinc-200">
+              More stories
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/job-board")}
+              className="flex-row items-center justify-between rounded-lg bg-zinc-50 px-4 py-4 dark:bg-zinc-800"
+            >
+              <View className="flex-row items-center">
+                <FontAwesome5
+                  name="briefcase"
+                  size={18}
+                  color={colorScheme === "dark" ? "#d4d4d8" : "#52525b"}
+                  style={{ marginRight: 12 }}
+                />
+                <Text className="font-semibold text-zinc-800 dark:text-zinc-200">
+                  Open Job board
+                </Text>
+              </View>
+              <FontAwesome5
+                name="chevron-right"
+                size={14}
+                color={colorScheme === "dark" ? "#a1a1aa" : "#71717a"}
+              />
+            </TouchableOpacity>
+          </View>
+
           <View className="mb-6 rounded-lg overflow-hidden">
             <Text className="text-lg font-bold mb-2 text-zinc-800 dark:text-zinc-200">
               Default Landing Page
