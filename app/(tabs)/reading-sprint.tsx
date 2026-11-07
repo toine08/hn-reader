@@ -100,11 +100,11 @@ function getPlanDisclosure(
     product.subscriptionPeriod,
     fallbackPeriod,
   );
-  const renewal = `After that, it automatically renews at ${product.priceString} per ${billingPeriod} until canceled.`;
+  const renewal = `${product.priceString}/${billingPeriod}; auto-renews until canceled.`;
   const introPrice = product.introPrice;
 
   if (!introPrice) {
-    return `Automatically renews at ${product.priceString} per ${billingPeriod} until canceled.`;
+    return renewal;
   }
 
   const introUnits: Record<string, string> = {
@@ -115,16 +115,21 @@ function getPlanDisclosure(
   };
   const introUnit = introUnits[introPrice.periodUnit] ?? "billing period";
   const introDurationCount = introPrice.periodNumberOfUnits * introPrice.cycles;
-  const introDuration =
-    introDurationCount === 1
-      ? introUnit
-      : `${introDurationCount} ${introUnit}s`;
+  const durationInDays =
+    introPrice.periodUnit === "WEEK"
+      ? introDurationCount * 7
+      : introPrice.periodUnit === "DAY"
+        ? introDurationCount
+        : null;
+  const introDuration = durationInDays
+    ? `${durationInDays}-day`
+    : `${introDurationCount}-${introUnit}`;
   const introOffer =
     introPrice.price === 0
-      ? `${introDuration} free trial for eligible new subscribers.`
-      : `${introPrice.priceString} for ${introDuration} for eligible new subscribers.`;
+      ? `${introDuration} free trial`
+      : `${introPrice.priceString} for ${introDuration}`;
 
-  return `${introOffer} ${renewal}`;
+  return `Eligible new subscribers: ${introOffer}, then ${renewal}`;
 }
 
 export default function ReadingSprintScreen() {
@@ -471,6 +476,9 @@ export default function ReadingSprintScreen() {
           <Text className="mt-2 text-sm leading-6 text-zinc-700 dark:text-zinc-200">
             Organize saved stories into Today, Later, and Read; choose a 5, 15, or 30-minute session; and optionally set a daily reminder.
           </Text>
+          <Text className="mt-3 text-xs leading-4 text-zinc-600 dark:text-zinc-300">
+            RevenueCat processes subscription purchases and anonymous paywall-view analytics using a random app ID. See the Privacy Policy below.
+          </Text>
           {!isRevenueCatAvailable() && (
             <Text className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">
               RevenueCat setup is not finished for this build. Add the iOS and Android public SDK keys as EXPO_PUBLIC_REVENUECAT_IOS_API_KEY and EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY, then create a new native development build.
@@ -485,36 +493,43 @@ export default function ReadingSprintScreen() {
             </Text>
           )}
           {monthlyPackage && (
-            <>
-              <TouchableOpacity
-                disabled={purchaseBusy !== null}
-                onPress={() => void handlePurchase(monthlyPackage, "monthly")}
-                className="mt-5 rounded-lg bg-orange-600 px-4 py-3"
-              >
-                <Text className="text-center font-semibold text-white">
-                  {purchaseBusy === "monthly" ? "Processing…" : `Monthly · ${monthlyPackage.product.priceString}`}
-                </Text>
-              </TouchableOpacity>
-              <Text className="mt-2 text-sm leading-5 text-zinc-600 dark:text-zinc-300">
-                {getPlanDisclosure(monthlyPackage, "month")}
+            <TouchableOpacity
+              disabled={purchaseBusy !== null}
+              onPress={() => void handlePurchase(monthlyPackage, "monthly")}
+              className="mt-5 rounded-lg bg-orange-600 px-4 py-3"
+            >
+              <Text className="text-center font-semibold text-white">
+                {purchaseBusy === "monthly" ? "Processing…" : `Monthly · ${monthlyPackage.product.priceString}`}
               </Text>
-            </>
+            </TouchableOpacity>
           )}
           {annualPackage && (
-            <>
-              <TouchableOpacity
-                disabled={purchaseBusy !== null}
-                onPress={() => void handlePurchase(annualPackage, "annual")}
-                className="mt-3 rounded-lg bg-orange-600 px-4 py-3"
-              >
-                <Text className="text-center font-semibold text-white">
-                  {purchaseBusy === "annual" ? "Processing…" : `Annual · ${annualPackage.product.priceString}`}
-                </Text>
-              </TouchableOpacity>
-              <Text className="mt-2 text-sm leading-5 text-zinc-600 dark:text-zinc-300">
-                {getPlanDisclosure(annualPackage, "year")}
+            <TouchableOpacity
+              disabled={purchaseBusy !== null}
+              onPress={() => void handlePurchase(annualPackage, "annual")}
+              className="mt-3 rounded-lg bg-orange-600 px-4 py-3"
+            >
+              <Text className="text-center font-semibold text-white">
+                {purchaseBusy === "annual" ? "Processing…" : `Annual · ${annualPackage.product.priceString}`}
               </Text>
-            </>
+            </TouchableOpacity>
+          )}
+          {(monthlyPackage || annualPackage) && (
+            <View className="mt-4 rounded-lg bg-white/70 px-3 py-2 dark:bg-zinc-900/60">
+              <Text className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+                Subscription details
+              </Text>
+              {monthlyPackage && (
+                <Text className="mt-1 text-xs leading-4 text-zinc-600 dark:text-zinc-300">
+                  Monthly: {getPlanDisclosure(monthlyPackage, "month")}
+                </Text>
+              )}
+              {annualPackage && (
+                <Text className="mt-1 text-xs leading-4 text-zinc-600 dark:text-zinc-300">
+                  Annual: {getPlanDisclosure(annualPackage, "year")}
+                </Text>
+              )}
+            </View>
           )}
           <TouchableOpacity
             disabled={purchaseBusy !== null || !canOfferPurchase}
@@ -525,12 +540,12 @@ export default function ReadingSprintScreen() {
               {purchaseBusy === "restore" ? "Restoring…" : "Restore purchases"}
             </Text>
           </TouchableOpacity>
-          <View className="mt-2 flex-row justify-center gap-5 border-t border-orange-200 pt-4 dark:border-orange-900">
+          <View className="mt-3 flex-row justify-center gap-5">
             <TouchableOpacity
               accessibilityRole="link"
               onPress={() => openLegalLink(PRIVACY_POLICY_URL)}
             >
-              <Text className="text-sm text-orange-700 underline dark:text-orange-300">
+              <Text className="text-sm text-orange-700 dark:text-orange-300">
                 Privacy Policy
               </Text>
             </TouchableOpacity>
@@ -538,7 +553,7 @@ export default function ReadingSprintScreen() {
               accessibilityRole="link"
               onPress={() => openLegalLink(TERMS_OF_USE_URL)}
             >
-              <Text className="text-sm text-orange-700 underline dark:text-orange-300">
+              <Text className="text-sm text-orange-700 dark:text-orange-300">
                 Terms of Use
               </Text>
             </TouchableOpacity>
