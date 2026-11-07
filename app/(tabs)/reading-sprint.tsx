@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Platform,
   ScrollView,
   Text,
@@ -42,6 +43,11 @@ type SessionLength = (typeof SESSION_LENGTHS)[number];
 type SprintTab = ReadingSprintStatus | "saved";
 type PurchaseAction = "monthly" | "annual" | "restore";
 
+const PRIVACY_POLICY_URL =
+  "https://hackernewsreaderapp.download/privacy-policy";
+const TERMS_OF_USE_URL =
+  "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+
 const initialRevenueCatState: RevenueCatState = {
   configured: false,
   isPremium: false,
@@ -64,6 +70,61 @@ function planPackage(
       ? type === "MONTHLY"
       : type === "ANNUAL" || type === "YEARLY";
   });
+}
+
+function formatSubscriptionPeriod(
+  period: string | null,
+  fallback: string,
+): string {
+  const match = period?.match(/^P(\d+)([DWMY])$/);
+  if (!match) return fallback;
+
+  const [, count, unitCode] = match;
+  const units: Record<string, string> = {
+    D: "day",
+    W: "week",
+    M: "month",
+    Y: "year",
+  };
+  const unit = units[unitCode];
+  if (!unit) return fallback;
+  return count === "1" ? unit : `${count} ${unit}s`;
+}
+
+function getPlanDisclosure(
+  purchasePackage: PurchasesPackage,
+  fallbackPeriod: string,
+): string {
+  const product = purchasePackage.product;
+  const billingPeriod = formatSubscriptionPeriod(
+    product.subscriptionPeriod,
+    fallbackPeriod,
+  );
+  const renewal = `After that, it automatically renews at ${product.priceString} per ${billingPeriod} until canceled.`;
+  const introPrice = product.introPrice;
+
+  if (!introPrice) {
+    return `Automatically renews at ${product.priceString} per ${billingPeriod} until canceled.`;
+  }
+
+  const introUnits: Record<string, string> = {
+    DAY: "day",
+    WEEK: "week",
+    MONTH: "month",
+    YEAR: "year",
+  };
+  const introUnit = introUnits[introPrice.periodUnit] ?? "billing period";
+  const introDurationCount = introPrice.periodNumberOfUnits * introPrice.cycles;
+  const introDuration =
+    introDurationCount === 1
+      ? introUnit
+      : `${introDurationCount} ${introUnit}s`;
+  const introOffer =
+    introPrice.price === 0
+      ? `${introDuration} free trial for eligible new subscribers.`
+      : `${introPrice.priceString} for ${introDuration} for eligible new subscribers.`;
+
+  return `${introOffer} ${renewal}`;
 }
 
 export default function ReadingSprintScreen() {
@@ -320,6 +381,13 @@ export default function ReadingSprintScreen() {
     }
   };
 
+  const openLegalLink = (url: string) => {
+    void Linking.openURL(url).catch((error) => {
+      console.error("Could not open subscription information link:", error);
+      Alert.alert("Link unavailable", "Please try again later.");
+    });
+  };
+
   const renderArticle = (article: Article) => {
     const actions: ReadingSprintStatus[] =
       tab === "saved"
@@ -417,26 +485,36 @@ export default function ReadingSprintScreen() {
             </Text>
           )}
           {monthlyPackage && (
-            <TouchableOpacity
-              disabled={purchaseBusy !== null}
-              onPress={() => void handlePurchase(monthlyPackage, "monthly")}
-              className="mt-5 rounded-lg bg-orange-600 px-4 py-3"
-            >
-              <Text className="text-center font-semibold text-white">
-                {purchaseBusy === "monthly" ? "Processing…" : `Monthly · ${monthlyPackage.product.priceString}`}
+            <>
+              <TouchableOpacity
+                disabled={purchaseBusy !== null}
+                onPress={() => void handlePurchase(monthlyPackage, "monthly")}
+                className="mt-5 rounded-lg bg-orange-600 px-4 py-3"
+              >
+                <Text className="text-center font-semibold text-white">
+                  {purchaseBusy === "monthly" ? "Processing…" : `Monthly · ${monthlyPackage.product.priceString}`}
+                </Text>
+              </TouchableOpacity>
+              <Text className="mt-2 text-sm leading-5 text-zinc-600 dark:text-zinc-300">
+                {getPlanDisclosure(monthlyPackage, "month")}
               </Text>
-            </TouchableOpacity>
+            </>
           )}
           {annualPackage && (
-            <TouchableOpacity
-              disabled={purchaseBusy !== null}
-              onPress={() => void handlePurchase(annualPackage, "annual")}
-              className="mt-3 rounded-lg bg-orange-600 px-4 py-3"
-            >
-              <Text className="text-center font-semibold text-white">
-                {purchaseBusy === "annual" ? "Processing…" : `Annual · ${annualPackage.product.priceString}`}
+            <>
+              <TouchableOpacity
+                disabled={purchaseBusy !== null}
+                onPress={() => void handlePurchase(annualPackage, "annual")}
+                className="mt-3 rounded-lg bg-orange-600 px-4 py-3"
+              >
+                <Text className="text-center font-semibold text-white">
+                  {purchaseBusy === "annual" ? "Processing…" : `Annual · ${annualPackage.product.priceString}`}
+                </Text>
+              </TouchableOpacity>
+              <Text className="mt-2 text-sm leading-5 text-zinc-600 dark:text-zinc-300">
+                {getPlanDisclosure(annualPackage, "year")}
               </Text>
-            </TouchableOpacity>
+            </>
           )}
           <TouchableOpacity
             disabled={purchaseBusy !== null || !canOfferPurchase}
@@ -447,6 +525,24 @@ export default function ReadingSprintScreen() {
               {purchaseBusy === "restore" ? "Restoring…" : "Restore purchases"}
             </Text>
           </TouchableOpacity>
+          <View className="mt-2 flex-row justify-center gap-5 border-t border-orange-200 pt-4 dark:border-orange-900">
+            <TouchableOpacity
+              accessibilityRole="link"
+              onPress={() => openLegalLink(PRIVACY_POLICY_URL)}
+            >
+              <Text className="text-sm text-orange-700 underline dark:text-orange-300">
+                Privacy Policy
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="link"
+              onPress={() => openLegalLink(TERMS_OF_USE_URL)}
+            >
+              <Text className="text-sm text-orange-700 underline dark:text-orange-300">
+                Terms of Use
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
         </ScrollView>
       </>

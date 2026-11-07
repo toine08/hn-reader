@@ -247,19 +247,22 @@ export default function StoryTypeModal({ visible, onClose, item, kids }: StoryTy
       presentationStyle="overFullScreen"
       transparent={true}
       onRequestClose={onClose}
-      className="m-0 flex-1 items-center justify-end w-full bg-white dark:bg-black h-60 bg-opacity-100"
     >
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={{ flex: 1, width: "100%" }}>
         <PanGestureHandler
           ref={gestureRef}
           onGestureEvent={onGestureEvent}
           onHandlerStateChange={onHandlerStateChange}
           activeOffsetY={10}
           failOffsetY={-10}
+          style={{ flex: 1, width: "100%" }}
         >
           <Animated.View 
             className="flex-1 bg-white dark:bg-black" 
             style={{ 
+              flex: 1,
+              width: "100%",
+              alignSelf: "stretch",
               paddingTop: insets.top,
               transform: [{ 
                 translateY: translateY.interpolate({
