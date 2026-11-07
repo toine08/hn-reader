@@ -47,6 +47,8 @@ const PRIVACY_POLICY_URL =
   "https://hackernewsreaderapp.download/privacy-policy";
 const TERMS_OF_USE_URL =
   "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+const localDebugPremiumEnabled =
+  __DEV__ && process.env.EXPO_PUBLIC_DEBUG_PREMIUM === "true";
 
 const initialRevenueCatState: RevenueCatState = {
   configured: false,
@@ -194,6 +196,7 @@ export default function ReadingSprintScreen() {
     if (
       loading ||
       revenueCat.isPremium ||
+      localDebugPremiumEnabled ||
       !isRevenueCatAvailable() ||
       paywallImpressionTracked.current
     ) {
@@ -445,6 +448,7 @@ export default function ReadingSprintScreen() {
 
   const monthlyPackage = planPackage(revenueCat.packages, "monthly");
   const annualPackage = planPackage(revenueCat.packages, "annual");
+  const hasPremiumAccess = revenueCat.isPremium || localDebugPremiumEnabled;
 
   if (loading) {
     return (
@@ -457,7 +461,7 @@ export default function ReadingSprintScreen() {
     );
   }
 
-  if (!revenueCat.isPremium) {
+  if (!hasPremiumAccess) {
     const canOfferPurchase = revenueCat.configured && !revenueCatError;
     return (
       <>
@@ -574,6 +578,12 @@ export default function ReadingSprintScreen() {
       <Text className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
         Your queue is stored on this device. Bookmarked stories stay available in the free reader.
       </Text>
+
+      {localDebugPremiumEnabled && (
+        <Text className="mt-3 self-start rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-200">
+          Local debug mode · premium unlocked
+        </Text>
+      )}
 
       <View className="mt-5 rounded-2xl bg-zinc-100 p-4 dark:bg-zinc-800">
         <Text className="text-lg font-semibold text-zinc-900 dark:text-white">

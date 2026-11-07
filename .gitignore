@@ -87,3 +87,6 @@ yarn-error.*
 .env.production
 .env.development
 .github/SDK55_BREAKING_CHANGES.md
+
+# Local product ideas
+/SPRINT_V2.md
